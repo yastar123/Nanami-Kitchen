@@ -593,7 +593,7 @@ export function useStore<T>(selector: (s: State) => T): T {
   return useSyncExternalStore(
     subscribe,
     () => read(state),
-    () => read(defaultState),
+    () => read(state),
   );
 }
 

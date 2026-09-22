@@ -29,8 +29,8 @@ export async function initDb(): Promise<boolean> {
     return true;
   }
 
-  // If previous attempt failed recently (< 4 seconds ago), return false quickly to prevent blocking
-  if (isInitialized === false && Date.now() - lastInitAttempt < 4000) {
+  // If previous attempt failed recently (< 30 seconds ago), return false quickly to prevent blocking
+  if (isInitialized === false && Date.now() - lastInitAttempt < 30000) {
     return false;
   }
 
@@ -51,10 +51,10 @@ export async function initDb(): Promise<boolean> {
         }
       }
 
-      // Test the connection quickly first with a 3-second timeout
+      // Test the connection quickly first with a 1.2-second timeout
       const pingPromise = sql`SELECT 1`;
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("PostgreSQL connection timeout")), 3000),
+        setTimeout(() => reject(new Error("PostgreSQL connection timeout")), 1200),
       );
       await Promise.race([pingPromise, timeoutPromise]);
 

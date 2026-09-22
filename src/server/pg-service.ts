@@ -7,7 +7,7 @@ let startingPromise: Promise<boolean> | null = null;
 export async function isPgPortOpen(port = 5432, host = "127.0.0.1"): Promise<boolean> {
   return new Promise((resolve) => {
     const s = new net.Socket();
-    s.setTimeout(800);
+    s.setTimeout(250);
     s.on("connect", () => {
       s.destroy();
       resolve(true);
@@ -70,9 +70,9 @@ export async function ensurePostgresService(): Promise<boolean> {
         console.debug("Could not launch pg_ctl start:", err);
       }
 
-      // Wait up to 3 seconds for port to open
-      for (let i = 0; i < 15; i++) {
-        await new Promise((r) => setTimeout(r, 200));
+      // Wait up to 1 second for port to open
+      for (let i = 0; i < 5; i++) {
+        await new Promise((r) => setTimeout(r, 150));
         const isOpen = await isPgPortOpen(5432, "127.0.0.1");
         if (isOpen) {
           console.log("PostgreSQL service successfully started and listening on 5432.");

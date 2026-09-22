@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { actions } from "@/lib/store";
 import { getDatabaseState } from "@/lib/server-functions";
 
@@ -192,11 +192,17 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const serverState = Route.useLoaderData();
+  const lastHydratedRef = useRef<any>(null);
+
+  // Synchronously hydrate state if serverState is available so child components
+  // immediately have the up-to-date database state on the first render pass
+  if (serverState && lastHydratedRef.current !== serverState) {
+    lastHydratedRef.current = serverState;
+    actions.hydrateState(serverState);
+  }
 
   useEffect(() => {
-    if (serverState) {
-      actions.hydrateState(serverState);
-    } else {
+    if (!serverState) {
       actions.loadServerState();
     }
   }, [serverState]);

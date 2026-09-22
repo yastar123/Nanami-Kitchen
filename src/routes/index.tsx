@@ -58,7 +58,18 @@ function Home() {
     cms: s.cms || defaultCmsContent,
   }));
   const [active, setActive] = useState<MenuItem | null>(null);
-  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Show Welcome Screen first on initial site load unless disabled in CMS or already seen
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (welcomeScreenSeen) return false;
+    return cms.welcomeScreen?.enabled !== false;
+  });
+
+  const handleWelcomeDone = () => {
+    welcomeScreenSeen = true;
+    setShowWelcome(false);
+  };
+
   const [openFaq, setOpenFaq] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -74,11 +85,10 @@ function Home() {
     mustTryItems.length > 0 ? mustTryItems : menu.filter((m) => m.available).slice(0, 4);
 
   useEffect(() => {
-    if (cms.welcomeScreen?.enabled === false) return;
-    if (welcomeScreenSeen) return;
-    welcomeScreenSeen = true;
-    setShowWelcome(true);
-  }, [cms.welcomeScreen?.enabled]);
+    if (cms.welcomeScreen?.enabled === false && showWelcome) {
+      setShowWelcome(false);
+    }
+  }, [cms.welcomeScreen?.enabled, showWelcome]);
 
   // ScrollSpy with IntersectionObserver (Spec-compliant)
   useEffect(() => {
@@ -127,7 +137,7 @@ function Home() {
 
   return (
     <AppShell>
-      {showWelcome && <WelcomeScreen onDone={() => setShowWelcome(false)} />}
+      {showWelcome && <WelcomeScreen onDone={handleWelcomeDone} />}
 
       {/* Full-width Hero Banner pinned to top */}
       <div className="-mx-3 -mt-3">
