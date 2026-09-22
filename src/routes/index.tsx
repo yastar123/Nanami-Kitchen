@@ -48,8 +48,6 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-let welcomeScreenSeen = false;
-
 function Home() {
   const { orderType, menu, settings, cms } = useStore((s) => ({
     orderType: s.orderType,
@@ -59,14 +57,10 @@ function Home() {
   }));
   const [active, setActive] = useState<MenuItem | null>(null);
 
-  // Show Welcome Screen first on initial site load unless disabled in CMS or already seen
-  const [showWelcome, setShowWelcome] = useState(() => {
-    if (welcomeScreenSeen) return false;
-    return cms.welcomeScreen?.enabled !== false;
-  });
+  // Show Welcome Screen on initial site load / refresh unless disabled in CMS
+  const [showWelcome, setShowWelcome] = useState(() => cms.welcomeScreen?.enabled !== false);
 
   const handleWelcomeDone = () => {
-    welcomeScreenSeen = true;
     setShowWelcome(false);
   };
 

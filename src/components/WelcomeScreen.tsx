@@ -7,11 +7,6 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
   const [leaving, setLeaving] = useState(false);
   const cms = useStore((s) => s.cms);
 
-  // Keep duration snappy: between 1.2s and 2.0s (default 1.8s) so total load feel is under 3s
-  const durationMs = Math.min(
-    2000,
-    Math.max(1000, (cms?.welcomeScreen?.durationSec ?? 1.8) * 1000),
-  );
   const logoSrc = cms?.logoUrl || defaultLogo;
   const heroSrc = cms?.welcomeScreen?.imageUrl || cms?.heroImage || defaultHeroImg;
   const title = cms?.welcomeScreen?.title || cms?.brandName || "nanami";
@@ -19,23 +14,40 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
   const slogan = cms?.welcomeScreen?.slogan || "Good Food.\nMade with Love";
 
   useEffect(() => {
-    const t = setTimeout(() => setLeaving(true), durationMs);
+    // Measure how long the user has ALREADY been seeing the splash screen since navigation started
+    const navStart =
+      (typeof window !== "undefined" && (window as any).__nanami_nav_start) ||
+      (typeof performance !== "undefined" && performance.timeOrigin
+        ? performance.timeOrigin
+        : Date.now());
+    const elapsed = Math.max(0, Date.now() - navStart);
+
+    // Target TOTAL splash display time: capped strictly between 600ms and 1200ms
+    // This guarantees total time from page request to home screen is always under 1.5s - 1.8s
+    const configuredTarget = (cms?.welcomeScreen?.durationSec ?? 1.0) * 1000;
+    const targetTotal = Math.min(1200, Math.max(600, configuredTarget));
+
+    // Calculate remaining duration before initiating smooth exit
+    const remainingMs = Math.max(150, targetTotal - elapsed);
+
+    const t = setTimeout(() => setLeaving(true), remainingMs);
     return () => clearTimeout(t);
-  }, [durationMs]);
+  }, [cms?.welcomeScreen?.durationSec]);
 
   useEffect(() => {
     if (!leaving) return;
-    const t = setTimeout(onDone, 300);
+    const t = setTimeout(onDone, 200);
     return () => clearTimeout(t);
   }, [leaving, onDone]);
 
   return (
     <div
+      id="welcome-screen-overlay"
       onClick={() => setLeaving(true)}
       role="button"
       tabIndex={0}
       aria-label="Welcome screen (click to continue)"
-      className={`fixed inset-0 z-[100] flex cursor-pointer select-none flex-col items-center justify-between overflow-hidden bg-[oklch(0.16_0.01_60)] transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[100] flex cursor-pointer select-none flex-col items-center justify-between overflow-hidden bg-[oklch(0.16_0.01_60)] transition-opacity duration-200 ${
         leaving ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >

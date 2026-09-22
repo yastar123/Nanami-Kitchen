@@ -229,7 +229,7 @@ export const seedCms = {
   },
   welcomeScreen: {
     enabled: true,
-    durationSec: 2.6,
+    durationSec: 1.2,
     title: "nanami",
     subtitle: "kitchen",
     slogan: "Good Food.\nMade with Love",

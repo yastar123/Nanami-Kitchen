@@ -138,10 +138,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      {
-        rel: "stylesheet",
-        href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
-      },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/icon-192.png" },
@@ -176,7 +172,20 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var w=typeof window!=="undefined"?window:typeof globalThis!=="undefined"?globalThis:null;if(w){var p=Object.getPrototypeOf(w);var d=Object.getOwnPropertyDescriptor(w,"fetch")||(p?Object.getOwnPropertyDescriptor(p,"fetch"):null);if(d&&(!d.writable||!d.set)){var _f=w.fetch;Object.defineProperty(w,"fetch",{configurable:true,enumerable:true,get:function(){return _f;},set:function(v){_f=v;}});}}}catch(e){}})();`,
+            __html: `(function(){
+              try {
+                window.__nanami_nav_start = Date.now();
+                var w=typeof window!=="undefined"?window:typeof globalThis!=="undefined"?globalThis:null;
+                if(w){
+                  var p=Object.getPrototypeOf(w);
+                  var d=Object.getOwnPropertyDescriptor(w,"fetch")||(p?Object.getOwnPropertyDescriptor(p,"fetch"):null);
+                  if(d&&(!d.writable||!d.set)){
+                    var _f=w.fetch;
+                    Object.defineProperty(w,"fetch",{configurable:true,enumerable:true,get:function(){return _f;},set:function(v){_f=v;}});
+                  }
+                }
+              }catch(e){}
+            })();`,
           }}
         />
         <HeadContent />
