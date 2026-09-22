@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Upload, X, Trash2, Eye, Check } from "lucide-react";
 import { actions, useStore, uid, type MediaAsset } from "@/lib/store";
 import { SectionCard } from "./DashboardShell";
+import { compressImage } from "@/lib/image-compression";
 
 interface MediaGalleryProps {
   onSelect?: (url: string) => void;
@@ -22,11 +23,23 @@ export function MediaGallery({ onSelect, selectedUrl, closeOnSelect }: MediaGall
 
     setUploading(true);
     try {
-      // In a real app, you'd upload to S3/Cloudinary.
-      // For this prototype, we'll use a FileReader to get a base64 or object URL.
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const url = event.target?.result as string;
+      let url = "";
+      try {
+        url = await compressImage(file, 1000, 1000, 0.82);
+      } catch (err) {
+        void err;
+      }
+
+      if (!url) {
+        url = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve((event.target?.result as string) || "");
+          reader.onerror = () => resolve("");
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (url) {
         const newAsset: MediaAsset = {
           id: "img-" + uid(),
           url,
@@ -35,8 +48,7 @@ export function MediaGallery({ onSelect, selectedUrl, closeOnSelect }: MediaGall
           usedByMenuIds: [],
         };
         actions.saveMediaAsset(newAsset);
-      };
-      reader.readAsDataURL(file);
+      }
     } catch (err) {
       console.error("Upload failed", err);
     } finally {

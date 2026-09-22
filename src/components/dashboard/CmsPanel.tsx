@@ -49,6 +49,7 @@ import food4 from "@/assets/food-4.jpg";
 import { SectionCard, fieldClass } from "./DashboardShell";
 import { MediaGallery } from "./MediaGallery";
 import { CheckoutCmsSection } from "./CheckoutCmsSection";
+import { compressImage } from "@/lib/image-compression";
 
 const LOGO_PRESETS = [
   { id: "default", name: "Default Nanami Logo", url: defaultLogo },
@@ -265,12 +266,22 @@ export function CmsPanel(props: CmsPanelProps = {}) {
     setTimeout(() => setSaveToast(false), 2500);
   };
 
-  const handleFileUpload = (
+  const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     callback: (base64: string) => void,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    try {
+      const compressed = await compressImage(file, 1200, 1200, 0.82);
+      if (compressed) {
+        callback(compressed);
+        triggerToast();
+        return;
+      }
+    } catch (err) {
+      void err;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {

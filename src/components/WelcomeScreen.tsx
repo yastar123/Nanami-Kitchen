@@ -7,7 +7,11 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
   const [leaving, setLeaving] = useState(false);
   const cms = useStore((s) => s.cms);
 
-  const durationMs = Math.max(1000, (cms?.welcomeScreen?.durationSec ?? 2.6) * 1000);
+  // Keep duration snappy: between 1.2s and 2.0s (default 1.8s) so total load feel is under 3s
+  const durationMs = Math.min(
+    2000,
+    Math.max(1000, (cms?.welcomeScreen?.durationSec ?? 1.8) * 1000),
+  );
   const logoSrc = cms?.logoUrl || defaultLogo;
   const heroSrc = cms?.welcomeScreen?.imageUrl || cms?.heroImage || defaultHeroImg;
   const title = cms?.welcomeScreen?.title || cms?.brandName || "nanami";
@@ -21,14 +25,17 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     if (!leaving) return;
-    const t = setTimeout(onDone, 600);
+    const t = setTimeout(onDone, 300);
     return () => clearTimeout(t);
   }, [leaving, onDone]);
 
   return (
     <div
       onClick={() => setLeaving(true)}
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-between overflow-hidden bg-[oklch(0.16_0.01_60)] transition-opacity duration-500 ${
+      role="button"
+      tabIndex={0}
+      aria-label="Welcome screen (click to continue)"
+      className={`fixed inset-0 z-[100] flex cursor-pointer select-none flex-col items-center justify-between overflow-hidden bg-[oklch(0.16_0.01_60)] transition-opacity duration-300 ${
         leaving ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >

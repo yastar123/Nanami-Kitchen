@@ -1,4 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
+import {
+  optimizeMenuImage,
+  optimizeCms,
+  optimizePromoImage,
+  optimizeMediaAsset,
+} from "../server/media-service";
 import type {
   MenuItem,
   Order,
@@ -12,8 +18,8 @@ import type {
 } from "../types";
 
 async function getDb() {
-  const { sql, initDb, seedDbIfEmpty } = await import("./db");
-  return { sql, initDb, seedDbIfEmpty };
+  const { sql, initDb, seedDbIfEmpty, getSessionProfileDb } = await import("./db");
+  return { sql, initDb, seedDbIfEmpty, getSessionProfileDb };
 }
 
 export function getEnvAccounts(): Account[] {
@@ -148,6 +154,20 @@ export const getDatabaseState = createServerFn({ method: "POST" })
     const fallback = getStorageData();
 
     const { sql, initDb, seedDbIfEmpty, getSessionProfileDb } = await getDb();
+
+    let activeProfile: any = null;
+    if (data?.sessionToken && getSessionProfileDb) {
+      try {
+        activeProfile = await getSessionProfileDb(data.sessionToken);
+      } catch (err) {
+        console.warn("[getDatabaseState] Error verifying session token:", err);
+      }
+    }
+
+    const isStaffOrAdmin = Boolean(
+      activeProfile && ["admin", "owner", "staff"].includes(activeProfile.role),
+    );
+
     if (!sql) {
       const mergedAccounts: Account[] = [...envAccounts];
       for (const sa of fallback.accounts) {
@@ -155,12 +175,41 @@ export const getDatabaseState = createServerFn({ method: "POST" })
           mergedAccounts.push(sa);
         }
       }
+
+      const safeAccounts = isStaffOrAdmin
+        ? mergedAccounts.map(({ password: _, ...a }) => a as Account)
+        : [];
+      const userOrders = isStaffOrAdmin
+        ? fallback.orders
+        : activeProfile
+          ? fallback.orders.filter((o) => o.accountId === activeProfile.id)
+          : [];
+
       return {
-        ...fallback,
-        accounts: mergedAccounts,
-        activeProfile: null,
+        settings: fallback.settings,
+        cms: optimizeCms(fallback.cms),
+        menu: (fallback.menu || []).map((m) => ({
+          ...m,
+          image: optimizeMenuImage(m.id, m.image),
+        })),
+        orders: userOrders,
+        promos: (fallback.promos || []).map((p) => ({
+          ...p,
+          imageUrl: optimizePromoImage(p.id, p.imageUrl),
+        })),
+        vouchers: fallback.vouchers,
+        accounts: safeAccounts,
+        staff: isStaffOrAdmin ? fallback.staff : [],
+        mediaAssets: isStaffOrAdmin
+          ? (fallback.mediaAssets || []).map((m) => ({
+              ...m,
+              url: optimizeMediaAsset(m.id, m.url),
+            }))
+          : [],
+        activeProfile,
       };
     }
+
     try {
       const ok = await initDb();
       if (!ok) {
@@ -170,10 +219,37 @@ export const getDatabaseState = createServerFn({ method: "POST" })
             mergedAccounts.push(sa);
           }
         }
+        const safeAccounts = isStaffOrAdmin
+          ? mergedAccounts.map(({ password: _, ...a }) => a as Account)
+          : [];
+        const userOrders = isStaffOrAdmin
+          ? fallback.orders
+          : activeProfile
+            ? fallback.orders.filter((o) => o.accountId === activeProfile.id)
+            : [];
+
         return {
-          ...fallback,
-          accounts: mergedAccounts,
-          activeProfile: null,
+          settings: fallback.settings,
+          cms: optimizeCms(fallback.cms),
+          menu: (fallback.menu || []).map((m) => ({
+            ...m,
+            image: optimizeMenuImage(m.id, m.image),
+          })),
+          orders: userOrders,
+          promos: (fallback.promos || []).map((p) => ({
+            ...p,
+            imageUrl: optimizePromoImage(p.id, p.imageUrl),
+          })),
+          vouchers: fallback.vouchers,
+          accounts: safeAccounts,
+          staff: isStaffOrAdmin ? fallback.staff : [],
+          mediaAssets: isStaffOrAdmin
+            ? (fallback.mediaAssets || []).map((m) => ({
+                ...m,
+                url: optimizeMediaAsset(m.id, m.url),
+              }))
+            : [],
+          activeProfile,
         };
       }
 
@@ -188,45 +264,74 @@ export const getDatabaseState = createServerFn({ method: "POST" })
           sql`SELECT * FROM orders ORDER BY created_at DESC` as Promise<any[]>,
           sql`SELECT * FROM promos ORDER BY id` as Promise<any[]>,
           sql`SELECT * FROM vouchers ORDER BY code` as Promise<any[]>,
-          sql`SELECT * FROM accounts ORDER BY id` as Promise<any[]>,
-          sql`SELECT * FROM staff ORDER BY created_at DESC` as Promise<any[]>,
-          sql`SELECT * FROM media_assets ORDER BY uploaded_at DESC` as Promise<any[]>,
+          isStaffOrAdmin
+            ? (sql`SELECT * FROM accounts ORDER BY id` as Promise<any[]>)
+            : Promise.resolve([]),
+          isStaffOrAdmin
+            ? (sql`SELECT * FROM staff ORDER BY created_at DESC` as Promise<any[]>)
+            : Promise.resolve([]),
+          isStaffOrAdmin
+            ? (sql`SELECT * FROM media_assets ORDER BY uploaded_at DESC` as Promise<any[]>)
+            : Promise.resolve([]),
         ]);
 
-      let activeProfile = null;
-      if (data?.sessionToken) {
-        activeProfile = await getSessionProfileDb(data.sessionToken);
-      }
+      let safeAccounts: Account[] = [];
+      if (isStaffOrAdmin) {
+        const mappedAccounts: Account[] = accounts.map((a) => ({
+          id: a.id,
+          email: a.email,
+          name: a.name,
+          phone: a.phone,
+          role: a.role,
+          address: a.address,
+          addresses: a.addresses,
+          points: a.points,
+        }));
 
-      const mappedAccounts: Account[] = accounts.map((a) => ({
-        id: a.id,
-        email: a.email,
-        password: a.password,
-        name: a.name,
-        phone: a.phone,
-        role: a.role,
-        address: a.address,
-        addresses: a.addresses,
-        points: a.points,
-      }));
-
-      const mergedAccounts: Account[] = [...envAccounts];
-      for (const a of mappedAccounts) {
-        if (!mergedAccounts.some((ea) => ea.email.toLowerCase() === a.email.toLowerCase())) {
-          mergedAccounts.push(a);
+        safeAccounts = [...envAccounts.map(({ password: _, ...a }) => a as Account)];
+        for (const a of mappedAccounts) {
+          if (!safeAccounts.some((ea) => ea.email.toLowerCase() === a.email.toLowerCase())) {
+            safeAccounts.push(a);
+          }
         }
       }
 
+      const allOrders = orders.map((o) => ({
+        id: o.id,
+        code: o.code,
+        createdAt: Number(o.created_at),
+        type: o.type,
+        lines: o.lines,
+        subtotal: Number(o.subtotal),
+        discount: Number(o.discount),
+        voucherCode: o.voucher_code,
+        deliveryFee: Number(o.delivery_fee),
+        total: Number(o.total),
+        status: o.status,
+        paid: o.paid,
+        paymentMethod: o.payment_method,
+        pointsEarned: o.points_earned,
+        etaMinutes: o.eta_minutes,
+        customer: o.customer,
+        accountId: o.account_id || null,
+      }));
+
+      const filteredOrders = isStaffOrAdmin
+        ? allOrders
+        : activeProfile
+          ? allOrders.filter((o) => o.accountId === activeProfile.id)
+          : [];
+
       return {
         settings: settings[0]?.data ?? fallback.settings,
-        cms: cms[0]?.data ?? fallback.cms,
+        cms: optimizeCms(cms[0]?.data ?? fallback.cms),
         menu: menu.map((m) => ({
           id: m.id,
           name: m.name,
           description: m.description,
           price: Number(m.price),
           category: m.category,
-          image: m.image,
+          image: optimizeMenuImage(m.id, m.image),
           available: m.available,
           prepMinutes: m.prep_minutes !== undefined ? Number(m.prep_minutes) : 15,
           badges: Array.isArray(m.badges) ? m.badges : [],
@@ -235,31 +340,13 @@ export const getDatabaseState = createServerFn({ method: "POST" })
           specialRequestEnabled:
             m.special_request_enabled !== undefined ? Boolean(m.special_request_enabled) : true,
         })),
-        orders: orders.map((o) => ({
-          id: o.id,
-          code: o.code,
-          createdAt: Number(o.created_at),
-          type: o.type,
-          lines: o.lines,
-          subtotal: Number(o.subtotal),
-          discount: Number(o.discount),
-          voucherCode: o.voucher_code,
-          deliveryFee: Number(o.delivery_fee),
-          total: Number(o.total),
-          status: o.status,
-          paid: o.paid,
-          paymentMethod: o.payment_method,
-          pointsEarned: o.points_earned,
-          etaMinutes: o.eta_minutes,
-          customer: o.customer,
-          accountId: o.account_id || null,
-        })),
+        orders: filteredOrders,
         promos: promos.map((p) => ({
           id: p.id,
           title: p.title,
           subtitle: p.subtitle,
           badge: p.badge,
-          imageUrl: p.image_url,
+          imageUrl: optimizePromoImage(p.id, p.image_url),
           link: p.link,
           active: p.active,
         })),
@@ -270,23 +357,27 @@ export const getDatabaseState = createServerFn({ method: "POST" })
           minSpend: Number(v.min_spend),
           active: v.active,
         })),
-        accounts: mergedAccounts,
-        staff: staff.map((s) => ({
-          id: s.id,
-          name: s.name,
-          email: s.email,
-          phone: s.phone,
-          role: s.role,
-          active: s.active,
-          createdAt: Number(s.created_at),
-        })),
-        mediaAssets: media.map((m) => ({
-          id: m.id,
-          url: m.url,
-          filename: m.filename,
-          uploadedAt: Number(m.uploaded_at),
-          usedByMenuIds: m.used_by_menu_ids || [],
-        })),
+        accounts: safeAccounts,
+        staff: isStaffOrAdmin
+          ? staff.map((s) => ({
+              id: s.id,
+              name: s.name,
+              email: s.email,
+              phone: s.phone,
+              role: s.role,
+              active: s.active,
+              createdAt: Number(s.created_at),
+            }))
+          : [],
+        mediaAssets: isStaffOrAdmin
+          ? media.map((m) => ({
+              id: m.id,
+              url: optimizeMediaAsset(m.id, m.url),
+              filename: m.filename,
+              uploadedAt: Number(m.uploaded_at),
+              usedByMenuIds: m.used_by_menu_ids || [],
+            }))
+          : [],
         activeProfile,
       };
     } catch (error) {
@@ -294,15 +385,22 @@ export const getDatabaseState = createServerFn({ method: "POST" })
         "Error fetching state from PostgreSQL database (using persistent storage fallback):",
         error,
       );
-      const mergedAccounts: Account[] = [...envAccounts];
-      for (const sa of fallback.accounts) {
-        if (!mergedAccounts.some((a) => a.email.toLowerCase() === sa.email.toLowerCase())) {
-          mergedAccounts.push(sa);
-        }
-      }
       return {
-        ...fallback,
-        accounts: mergedAccounts,
+        settings: fallback.settings,
+        cms: optimizeCms(fallback.cms),
+        menu: (fallback.menu || []).map((m) => ({
+          ...m,
+          image: optimizeMenuImage(m.id, m.image),
+        })),
+        orders: [],
+        promos: (fallback.promos || []).map((p) => ({
+          ...p,
+          imageUrl: optimizePromoImage(p.id, p.imageUrl),
+        })),
+        vouchers: fallback.vouchers,
+        accounts: [],
+        staff: [],
+        mediaAssets: [],
         activeProfile: null,
       };
     }

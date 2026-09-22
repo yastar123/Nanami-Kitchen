@@ -2,6 +2,13 @@ import express, { type Request, type Response } from "express";
 import cors from "cors";
 import { sql, initDb, seedDbIfEmpty } from "../lib/db";
 import { seedState } from "../lib/seed-data";
+import {
+  resolveMedia,
+  optimizeMenuImage,
+  optimizeCms,
+  optimizePromoImage,
+  optimizeMediaAsset,
+} from "./media-service";
 
 export const expressApp = express();
 
@@ -9,6 +16,38 @@ export const expressApp = express();
 expressApp.use(cors());
 expressApp.use(express.json());
 expressApp.use(express.urlencoded({ extended: true }));
+
+// Media binary streaming with aggressive cache headers
+expressApp.get("/api/media/:id", async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  if (!id) {
+    res.status(400).send("Media ID required");
+    return;
+  }
+  const resolved = await resolveMedia(id);
+  if (!resolved) {
+    res.status(404).send("Media not found");
+    return;
+  }
+  if (resolved.redirectUrl) {
+    res.redirect(302, resolved.redirectUrl);
+    return;
+  }
+  if (resolved.buffer && resolved.contentType) {
+    const clientEtag = req.headers["if-none-match"];
+    if (clientEtag && clientEtag === resolved.etag) {
+      res.status(304).end();
+      return;
+    }
+    res.setHeader("Content-Type", resolved.contentType);
+    res.setHeader("Content-Length", resolved.buffer.length);
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    if (resolved.etag) res.setHeader("ETag", resolved.etag);
+    res.send(resolved.buffer);
+    return;
+  }
+  res.status(400).send("Invalid media format");
+});
 
 // Health Check with Full Technology Stack Identification
 expressApp.get("/api/health", async (_req: Request, res: Response): Promise<void> => {
@@ -66,14 +105,23 @@ expressApp.get("/api/state", async (_req: Request, res: Response): Promise<void>
     res.json({
       source: "postgresql",
       settings: settings[0]?.["data"] ?? seedState.settings,
-      cms: cms[0]?.["data"] ?? seedState.cms,
-      menu: menu.length ? menu : seedState.menu,
+      cms: optimizeCms(cms[0]?.["data"] ?? seedState.cms),
+      menu: (menu.length ? menu : seedState.menu).map((m: any) => ({
+        ...m,
+        image: optimizeMenuImage(m.id, m.image),
+      })),
       orders: orders.length ? orders : seedState.orders,
-      promos: promos.length ? promos : seedState.promos,
+      promos: (promos.length ? promos : seedState.promos).map((p: any) => ({
+        ...p,
+        imageUrl: optimizePromoImage(p.id, p.imageUrl || p.image_url),
+      })),
       vouchers: vouchers.length ? vouchers : seedState.vouchers,
       accounts: accounts.length ? accounts : seedState.accounts,
       staff: staff.length ? staff : seedState.staff,
-      mediaAssets: media,
+      mediaAssets: media.map((m: any) => ({
+        ...m,
+        url: optimizeMediaAsset(m.id, m.url),
+      })),
     });
   } catch (error) {
     console.error("[Express API] Failed to fetch state from PostgreSQL:", error);
@@ -85,16 +133,24 @@ expressApp.get("/api/state", async (_req: Request, res: Response): Promise<void>
 expressApp.get("/api/menu", async (_req: Request, res: Response): Promise<void> => {
   const dbReady = await initDb();
   if (!sql || !dbReady) {
-    res.json({ menu: seedState.menu || [] });
+    const rawMenu = seedState.menu || [];
+    res.json({
+      menu: rawMenu.map((m: any) => ({
+        ...m,
+        image: optimizeMenuImage(m.id, m.image),
+      })),
+    });
     return;
   }
   try {
     const rows = await sql`SELECT * FROM menu_items ORDER BY category, name`;
-    if (rows.length === 0 && seedState.menu) {
-      res.json({ menu: seedState.menu });
-      return;
-    }
-    res.json({ menu: rows });
+    const target = rows.length === 0 && seedState.menu ? seedState.menu : rows;
+    res.json({
+      menu: target.map((m: any) => ({
+        ...m,
+        image: optimizeMenuImage(m.id, m.image),
+      })),
+    });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch menu items", details: String(err) });
   }

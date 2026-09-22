@@ -28,6 +28,7 @@ import {
 import { getCurrencySymbol } from "@/lib/currency";
 import { SectionCard, fieldClass } from "./DashboardShell";
 import { MediaGallery } from "./MediaGallery";
+import { compressImage } from "@/lib/image-compression";
 import { CategoryManagerModal } from "./CategoryManagerModal";
 import food1 from "@/assets/food-1.jpg";
 import food2 from "@/assets/food-2.jpg";
@@ -146,9 +147,18 @@ export function MenuCrudPanel(props: MenuCrudPanelProps = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    try {
+      const compressed = await compressImage(file, 1000, 1000, 0.82);
+      if (compressed) {
+        patch({ image: compressed });
+        return;
+      }
+    } catch (err) {
+      void err;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
@@ -158,11 +168,20 @@ export function MenuCrudPanel(props: MenuCrudPanelProps = {}) {
     reader.readAsDataURL(file);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
+    try {
+      const compressed = await compressImage(file, 1000, 1000, 0.82);
+      if (compressed) {
+        patch({ image: compressed });
+        return;
+      }
+    } catch (err) {
+      void err;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {

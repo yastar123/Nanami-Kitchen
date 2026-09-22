@@ -1,6 +1,13 @@
 import { sql, initDb, seedDbIfEmpty } from "../lib/db";
 import { seedState } from "../lib/seed-data";
 import {
+  resolveMedia,
+  optimizeMenuImage,
+  optimizeCms,
+  optimizePromoImage,
+  optimizeMediaAsset,
+} from "./media-service";
+import {
   getStorageData,
   saveMenuItemStorage,
   deleteMenuItemStorage,
@@ -72,6 +79,53 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       );
     }
 
+    // 1b. Media Image Server (Serves binary images with high-performance HTTP caching)
+    if (pathname.startsWith("/api/media/")) {
+      const mediaId = pathname.replace("/api/media/", "").split("?")[0];
+      const resolved = await resolveMedia(mediaId);
+
+      if (!resolved) {
+        return new Response("Media not found", { status: 404, headers: corsHeaders });
+      }
+
+      if (resolved.redirectUrl) {
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            location: resolved.redirectUrl,
+          },
+        });
+      }
+
+      if (resolved.buffer && resolved.contentType) {
+        const clientEtag = request.headers.get("if-none-match");
+        if (clientEtag && clientEtag === resolved.etag) {
+          return new Response(null, {
+            status: 304,
+            headers: {
+              ...corsHeaders,
+              etag: resolved.etag,
+              "cache-control": "public, max-age=31536000, immutable",
+            },
+          });
+        }
+
+        return new Response(resolved.buffer, {
+          status: 200,
+          headers: {
+            "content-type": resolved.contentType,
+            "content-length": resolved.buffer.length.toString(),
+            "cache-control": "public, max-age=31536000, immutable",
+            ...(resolved.etag ? { etag: resolved.etag } : {}),
+            "access-control-allow-origin": "*",
+          },
+        });
+      }
+
+      return new Response("Invalid media format", { status: 400, headers: corsHeaders });
+    }
+
     // 2. Full State Sync
     if (pathname === "/api/state") {
       const dbReady = await initDb();
@@ -79,16 +133,32 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         return new Response(
           JSON.stringify({
             source: "persistent-storage",
-            state: fallback,
+            state: {
+              ...fallback,
+              cms: optimizeCms(fallback.cms),
+              menu: (fallback.menu || []).map((m: any) => ({
+                ...m,
+                image: optimizeMenuImage(m.id, m.image),
+              })),
+            },
             settings: fallback.settings,
-            cms: fallback.cms,
-            menu: fallback.menu,
+            cms: optimizeCms(fallback.cms),
+            menu: (fallback.menu || []).map((m: any) => ({
+              ...m,
+              image: optimizeMenuImage(m.id, m.image),
+            })),
             orders: fallback.orders,
-            promos: fallback.promos,
+            promos: (fallback.promos || []).map((p: any) => ({
+              ...p,
+              imageUrl: optimizePromoImage(p.id, p.imageUrl || p.image_url),
+            })),
             vouchers: fallback.vouchers,
             accounts: fallback.accounts,
             staff: fallback.staff,
-            mediaAssets: fallback.mediaAssets,
+            mediaAssets: (fallback.mediaAssets || []).map((m: any) => ({
+              ...m,
+              url: optimizeMediaAsset(m.id, m.url),
+            })),
           }),
           {
             status: 200,
@@ -115,14 +185,14 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         JSON.stringify({
           source: "postgresql",
           settings: settings[0]?.["data"] ?? fallback.settings,
-          cms: cms[0]?.["data"] ?? fallback.cms,
+          cms: optimizeCms(cms[0]?.["data"] ?? fallback.cms),
           menu: menu.map((m: any) => ({
             id: m.id,
             name: m.name,
             description: m.description,
             price: Number(m.price),
             category: m.category,
-            image: m.image,
+            image: optimizeMenuImage(m.id, m.image),
             available: m.available,
             prepMinutes: m.prep_minutes !== undefined ? Number(m.prep_minutes) : 15,
             badges: Array.isArray(m.badges) ? m.badges : [],
@@ -155,7 +225,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
             title: p.title,
             subtitle: p.subtitle,
             badge: p.badge,
-            imageUrl: p.image_url,
+            imageUrl: optimizePromoImage(p.id, p.image_url),
             link: p.link,
             active: p.active,
           })),
@@ -188,7 +258,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           })),
           mediaAssets: media.map((m: any) => ({
             id: m.id,
-            url: m.url,
+            url: optimizeMediaAsset(m.id, m.url),
             filename: m.filename,
             uploadedAt: Number(m.uploaded_at),
             usedByMenuIds: m.used_by_menu_ids || [],
@@ -203,10 +273,19 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       const dbReady = await initDb();
       if (request.method === "GET") {
         if (!sql || !dbReady) {
-          return new Response(JSON.stringify({ menu: fallback.menu || [] }), {
-            status: 200,
-            headers: corsHeaders,
-          });
+          const rawMenu = fallback.menu || [];
+          return new Response(
+            JSON.stringify({
+              menu: rawMenu.map((m: any) => ({
+                ...m,
+                image: optimizeMenuImage(m.id, m.image),
+              })),
+            }),
+            {
+              status: 200,
+              headers: corsHeaders,
+            },
+          );
         }
         const rows = (await sql`SELECT * FROM menu_items ORDER BY category, name`) as any[];
         return new Response(
@@ -217,7 +296,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
               description: m.description,
               price: Number(m.price),
               category: m.category,
-              image: m.image,
+              image: optimizeMenuImage(m.id, m.image),
               available: m.available,
               prepMinutes: m.prep_minutes !== undefined ? Number(m.prep_minutes) : 15,
               badges: Array.isArray(m.badges) ? m.badges : [],
