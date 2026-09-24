@@ -108,17 +108,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
-      { title: "Nanami Kitchen — Food Delivery & Pickup" },
+      { title: "Nanami Kitchen" },
       {
         name: "description",
         content:
           "Nanami Kitchen cloud kitchen. Order bento, geprek, snacks and drinks for pickup or delivery with WhatsApp checkout.",
       },
       { name: "author", content: "Nanami Kitchen" },
-      { property: "og:title", content: "Nanami Kitchen — Food Delivery & Pickup" },
+      { property: "og:title", content: "Nanami Kitchen" },
       {
         property: "og:description",
-        content: "Good food, made with love. Order in seconds for pickup or delivery.",
+        content:
+          "Nanami Kitchen cloud kitchen. Order bento, geprek, snacks and drinks for pickup or delivery with WhatsApp checkout.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
