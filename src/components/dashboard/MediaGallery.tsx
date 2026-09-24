@@ -47,7 +47,7 @@ export function MediaGallery({ onSelect, selectedUrl, closeOnSelect }: MediaGall
           uploadedAt: Date.now(),
           usedByMenuIds: [],
         };
-        actions.saveMediaAsset(newAsset);
+        await actions.saveMediaAsset(newAsset);
       }
     } catch (err) {
       console.error("Upload failed", err);
@@ -57,7 +57,7 @@ export function MediaGallery({ onSelect, selectedUrl, closeOnSelect }: MediaGall
     }
   };
 
-  const handleDelete = (asset: MediaAsset) => {
+  const handleDelete = async (asset: MediaAsset) => {
     if (asset.usedByMenuIds.length > 0) {
       const productNames = asset.usedByMenuIds
         .map((id) => menu.find((m) => m.id === id)?.name)
@@ -75,7 +75,7 @@ export function MediaGallery({ onSelect, selectedUrl, closeOnSelect }: MediaGall
     }
 
     if (confirm("Are you sure you want to delete this image?")) {
-      actions.deleteMediaAsset(asset.id);
+      await actions.deleteMediaAsset(asset.id);
       console.log(`[DEBUG] Asset deleted: ${asset.id}`);
     }
   };

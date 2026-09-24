@@ -81,17 +81,19 @@ export const loginServerFn = createServerFn({ method: "POST" })
     const cleanEmail = data.email.trim().toLowerCase();
     const cleanPassword = data.password;
 
+    const { sql, createSessionDb } = await getDb();
+
     // 1. Check process.env accounts
     const envAccounts = getEnvAccounts();
     const envMatch = envAccounts.find(
       (a) => a.email.toLowerCase() === cleanEmail && a.password === cleanPassword,
     );
     if (envMatch) {
-      return { ok: true, account: envMatch };
+      const token = await createSessionDb(envMatch);
+      return { ok: true, account: envMatch, token: token || undefined };
     }
 
     // 2. Check PostgreSQL database
-    const { sql, createSessionDb, getSessionProfileDb } = await getDb();
     if (sql) {
       try {
         const rows = (await sql`
@@ -116,7 +118,7 @@ export const loginServerFn = createServerFn({ method: "POST" })
           return {
             ok: true,
             account,
-            token,
+            token: token || undefined,
           };
         }
       } catch (err) {
@@ -124,7 +126,37 @@ export const loginServerFn = createServerFn({ method: "POST" })
       }
     }
 
-    // 3. Check seed accounts
+    // 3. Check persistent storage accounts (fallback for offline DB or local signups)
+    try {
+      const { getStorageData } = await import("../server/persistent-storage");
+      const storage = getStorageData();
+      const storageMatch = storage.accounts.find(
+        (a) => a.email.trim().toLowerCase() === cleanEmail && a.password === cleanPassword,
+      );
+      if (storageMatch) {
+        // Sync into PostgreSQL if DB is available now
+        if (sql) {
+          try {
+            await sql`
+              INSERT INTO accounts (id, email, password, name, phone, role, address, addresses, points)
+              VALUES (${storageMatch.id}, ${cleanEmail}, ${storageMatch.password}, ${storageMatch.name}, ${storageMatch.phone}, ${storageMatch.role || "user"}, ${storageMatch.address || null}, ${sql.json(storageMatch.addresses || [])}, ${storageMatch.points || 0})
+              ON CONFLICT (email) DO UPDATE SET
+                password = EXCLUDED.password,
+                name = EXCLUDED.name,
+                phone = EXCLUDED.phone
+            `;
+          } catch (syncErr) {
+            void syncErr;
+          }
+        }
+        const token = await createSessionDb(storageMatch);
+        return { ok: true, account: storageMatch, token: token || undefined };
+      }
+    } catch (storageErr) {
+      console.warn("Storage accounts lookup failed:", storageErr);
+    }
+
+    // 4. Check seed accounts
     const { seedAccounts } = await import("./seed-data");
     const seedMatch = seedAccounts.find(
       (a) => a.email.toLowerCase() === cleanEmail && a.password === cleanPassword,
@@ -132,10 +164,91 @@ export const loginServerFn = createServerFn({ method: "POST" })
     if (seedMatch) {
       const account = seedMatch as unknown as Account;
       const token = await createSessionDb(account);
-      return { ok: true, account, token };
+      return { ok: true, account, token: token || undefined };
     }
 
     return { ok: false, error: "Invalid email or password." };
+  });
+
+export const registerServerFn = createServerFn({ method: "POST" })
+  .validator(
+    (data: { name: string; email: string; phone: string; password: string; address?: string }) =>
+      data,
+  )
+  .handler(async ({ data }) => {
+    const cleanEmail = data.email.trim().toLowerCase();
+    if (!cleanEmail.includes("@")) {
+      return { ok: false, error: "Please enter a valid email address." };
+    }
+    if (data.password.length < 6) {
+      return { ok: false, error: "Password must be at least 6 characters." };
+    }
+
+    // Check env accounts
+    const envAccounts = getEnvAccounts();
+    if (envAccounts.some((a) => a.email.toLowerCase() === cleanEmail)) {
+      return { ok: false, error: "This email is already registered. Please sign in." };
+    }
+
+    const { getStorageData, saveAccountStorage } = await import("../server/persistent-storage");
+    const storage = getStorageData();
+
+    // Check DB accounts
+    const { sql, createSessionDb } = await getDb();
+    if (sql) {
+      try {
+        const rows =
+          (await sql`SELECT id FROM accounts WHERE LOWER(email) = ${cleanEmail} LIMIT 1`) as any[];
+        if (rows.length > 0) {
+          return { ok: false, error: "This email is already registered. Please sign in." };
+        }
+      } catch (err) {
+        console.warn("Check existing account failed:", err);
+      }
+    }
+
+    // Check storage accounts
+    if (storage.accounts.some((a) => a.email.trim().toLowerCase() === cleanEmail)) {
+      return { ok: false, error: "This email is already registered. Please sign in." };
+    }
+
+    const newAccount: Account = {
+      id: "cust-" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
+      name: data.name.trim(),
+      email: cleanEmail,
+      phone: data.phone.trim(),
+      password: data.password,
+      role: "user",
+      address: data.address ? data.address.trim() : "",
+      addresses: data.address && data.address.trim() ? [data.address.trim()] : [],
+      points: 0,
+    };
+
+    // Save to persistent storage
+    saveAccountStorage(newAccount);
+
+    // Save to PostgreSQL if available
+    if (sql) {
+      try {
+        await sql`
+          INSERT INTO accounts (id, email, password, name, phone, role, address, addresses, points)
+          VALUES (${newAccount.id}, ${cleanEmail}, ${newAccount.password}, ${newAccount.name}, ${newAccount.phone}, ${newAccount.role}, ${newAccount.address || null}, ${sql.json(newAccount.addresses || [])}, ${newAccount.points})
+          ON CONFLICT (email) DO UPDATE SET
+            password = EXCLUDED.password,
+            name = EXCLUDED.name,
+            phone = EXCLUDED.phone,
+            role = EXCLUDED.role,
+            address = EXCLUDED.address,
+            addresses = EXCLUDED.addresses,
+            points = EXCLUDED.points
+        `;
+      } catch (e) {
+        console.warn("Failed to insert account to PostgreSQL (saved to storage):", e);
+      }
+    }
+
+    const token = await createSessionDb(newAccount);
+    return { ok: true, account: newAccount, token: token || undefined };
   });
 
 export const logoutServerFn = createServerFn({ method: "POST" })
@@ -200,12 +313,10 @@ export const getDatabaseState = createServerFn({ method: "POST" })
         vouchers: fallback.vouchers,
         accounts: safeAccounts,
         staff: isStaffOrAdmin ? fallback.staff : [],
-        mediaAssets: isStaffOrAdmin
-          ? (fallback.mediaAssets || []).map((m) => ({
-              ...m,
-              url: optimizeMediaAsset(m.id, m.url),
-            }))
-          : [],
+        mediaAssets: (fallback.mediaAssets || []).map((m) => ({
+          ...m,
+          url: optimizeMediaAsset(m.id, m.url),
+        })),
         activeProfile,
       };
     }
@@ -243,12 +354,10 @@ export const getDatabaseState = createServerFn({ method: "POST" })
           vouchers: fallback.vouchers,
           accounts: safeAccounts,
           staff: isStaffOrAdmin ? fallback.staff : [],
-          mediaAssets: isStaffOrAdmin
-            ? (fallback.mediaAssets || []).map((m) => ({
-                ...m,
-                url: optimizeMediaAsset(m.id, m.url),
-              }))
-            : [],
+          mediaAssets: (fallback.mediaAssets || []).map((m) => ({
+            ...m,
+            url: optimizeMediaAsset(m.id, m.url),
+          })),
           activeProfile,
         };
       }
@@ -270,9 +379,7 @@ export const getDatabaseState = createServerFn({ method: "POST" })
           isStaffOrAdmin
             ? (sql`SELECT * FROM staff ORDER BY created_at DESC` as Promise<any[]>)
             : Promise.resolve([]),
-          isStaffOrAdmin
-            ? (sql`SELECT * FROM media_assets ORDER BY uploaded_at DESC` as Promise<any[]>)
-            : Promise.resolve([]),
+          sql`SELECT * FROM media_assets ORDER BY uploaded_at DESC` as Promise<any[]>,
         ]);
 
       let safeAccounts: Account[] = [];
@@ -292,6 +399,12 @@ export const getDatabaseState = createServerFn({ method: "POST" })
         for (const a of mappedAccounts) {
           if (!safeAccounts.some((ea) => ea.email.toLowerCase() === a.email.toLowerCase())) {
             safeAccounts.push(a);
+          }
+        }
+        for (const sa of fallback.accounts) {
+          if (!safeAccounts.some((ea) => ea.email.toLowerCase() === sa.email.toLowerCase())) {
+            const { password: _, ...safeSa } = sa;
+            safeAccounts.push(safeSa as Account);
           }
         }
       }
@@ -369,15 +482,19 @@ export const getDatabaseState = createServerFn({ method: "POST" })
               createdAt: Number(s.created_at),
             }))
           : [],
-        mediaAssets: isStaffOrAdmin
-          ? media.map((m) => ({
-              id: m.id,
-              url: optimizeMediaAsset(m.id, m.url),
-              filename: m.filename,
-              uploadedAt: Number(m.uploaded_at),
-              usedByMenuIds: m.used_by_menu_ids || [],
-            }))
-          : [],
+        mediaAssets:
+          media && media.length > 0
+            ? media.map((m) => ({
+                id: m.id,
+                url: optimizeMediaAsset(m.id, m.url),
+                filename: m.filename,
+                uploadedAt: Number(m.uploaded_at),
+                usedByMenuIds: Array.isArray(m.used_by_menu_ids) ? m.used_by_menu_ids : [],
+              }))
+            : (fallback.mediaAssets || []).map((m) => ({
+                ...m,
+                url: optimizeMediaAsset(m.id, m.url),
+              })),
         activeProfile,
       };
     } catch (error) {
@@ -400,7 +517,10 @@ export const getDatabaseState = createServerFn({ method: "POST" })
         vouchers: fallback.vouchers,
         accounts: [],
         staff: [],
-        mediaAssets: [],
+        mediaAssets: (fallback.mediaAssets || []).map((m) => ({
+          ...m,
+          url: optimizeMediaAsset(m.id, m.url),
+        })),
         activeProfile: null,
       };
     }
@@ -730,9 +850,10 @@ export const deletePromoDb = createServerFn({ method: "POST" })
 export const saveAccountDb = createServerFn({ method: "POST" })
   .validator((acc: Account) => acc)
   .handler(async ({ data: acc }) => {
+    const cleanEmail = acc.email.trim().toLowerCase();
     try {
       const { saveAccountStorage } = await import("../server/persistent-storage");
-      saveAccountStorage(acc);
+      saveAccountStorage({ ...acc, email: cleanEmail });
     } catch (err) {
       console.error("Failed to save account to local storage:", err);
     }
@@ -742,9 +863,8 @@ export const saveAccountDb = createServerFn({ method: "POST" })
     try {
       await sql`
         INSERT INTO accounts (id, email, password, name, phone, role, address, addresses, points)
-        VALUES (${acc.id}, ${acc.email}, ${acc.password}, ${acc.name}, ${acc.phone}, ${acc.role || "user"}, ${acc.address || null}, ${sql.json(acc.addresses || [])}, ${acc.points || 0})
-        ON CONFLICT (id) DO UPDATE SET
-          email = EXCLUDED.email,
+        VALUES (${acc.id}, ${cleanEmail}, ${acc.password}, ${acc.name}, ${acc.phone}, ${acc.role || "user"}, ${acc.address || null}, ${sql.json(acc.addresses || [])}, ${acc.points || 0})
+        ON CONFLICT (email) DO UPDATE SET
           password = EXCLUDED.password,
           name = EXCLUDED.name,
           phone = EXCLUDED.phone,

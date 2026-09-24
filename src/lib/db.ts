@@ -395,60 +395,129 @@ export async function createSessionDb(account: {
   id: string;
   email: string;
   role: string;
+  name?: string;
+  phone?: string;
 }): Promise<string | null> {
-  if (!sql) return null;
+  const token = "sess_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+
+  // Always save session in persistent local storage fallback
   try {
-    const token = "sess_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
-    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
-    await sql`
-      INSERT INTO user_sessions (id, account_id, email, role, created_at, expires_at)
-      VALUES (${token}, ${account.id}, ${account.email}, ${account.role || "user"}, ${Date.now()}, ${expiresAt})
-    `;
-    return token;
+    const { saveSessionStorage } = await import("../server/persistent-storage");
+    saveSessionStorage({
+      id: token,
+      accountId: account.id,
+      email: account.email.trim().toLowerCase(),
+      role: account.role || "user",
+      createdAt: Date.now(),
+      expiresAt,
+    });
   } catch (err) {
-    console.warn("Failed to create session in PostgreSQL:", err);
-    return null;
+    console.warn("Could not save session to storage:", err);
   }
+
+  // Save session in PostgreSQL if available
+  if (sql) {
+    try {
+      await sql`
+        INSERT INTO user_sessions (id, account_id, email, role, created_at, expires_at)
+        VALUES (${token}, ${account.id}, ${account.email.trim().toLowerCase()}, ${account.role || "user"}, ${Date.now()}, ${expiresAt})
+      `;
+    } catch (err) {
+      console.warn("Failed to create session in PostgreSQL (persisted in storage fallback):", err);
+    }
+  }
+
+  return token;
 }
 
 export async function getSessionProfileDb(token: string) {
-  if (!sql || !token) return null;
+  if (!token) return null;
+
+  // 1. Try PostgreSQL if available
+  if (sql) {
+    try {
+      const rows = (await sql`
+        SELECT s.id as session_id, s.role as session_role, s.email as session_email,
+               a.id as account_id, a.name, a.phone, a.address, a.addresses, a.points, a.role as account_role
+        FROM user_sessions s
+        LEFT JOIN accounts a ON LOWER(a.email) = LOWER(s.email) OR a.id = s.account_id
+        WHERE s.id = ${token} AND s.expires_at > ${Date.now()}
+        LIMIT 1
+      `) as any[];
+
+      if (rows.length > 0) {
+        const r = rows[0];
+        const role = (r.account_role || r.session_role || "user") as
+          "user" | "admin" | "owner" | "staff";
+        return {
+          signedIn: true,
+          name:
+            r.name ||
+            (role === "owner" ? "Nanami Owner" : role === "admin" ? "Kitchen Admin" : "Member"),
+          email: r.session_email || r.email,
+          phone: r.phone || "",
+          role,
+          address: r.address || "",
+          addresses: Array.isArray(r.addresses) ? r.addresses : [],
+          points: r.points !== undefined ? Number(r.points) : 0,
+          method: "Session",
+        };
+      }
+    } catch (err) {
+      console.warn("Failed to retrieve session from PostgreSQL:", err);
+    }
+  }
+
+  // 2. Fallback to local persistent storage session
   try {
-    const rows = (await sql`
-      SELECT s.id as session_id, s.role, s.email, a.id as account_id, a.name, a.phone, a.address, a.addresses, a.points
-      FROM user_sessions s
-      JOIN accounts a ON a.id = s.account_id
-      WHERE s.id = ${token} AND s.expires_at > ${Date.now()}
-      LIMIT 1
-    `) as any[];
-    if (rows.length > 0) {
-      const r = rows[0];
+    const { getSessionStorage, getStorageData } = await import("../server/persistent-storage");
+    const session = getSessionStorage(token);
+    if (session) {
+      const storage = getStorageData();
+      const cleanEmail = session.email.trim().toLowerCase();
+      const account = storage.accounts.find((a) => a.email.trim().toLowerCase() === cleanEmail);
+      const role = (account?.role || session.role || "user") as
+        "user" | "admin" | "owner" | "staff";
+
       return {
         signedIn: true,
-        name: r.name,
-        email: r.email,
-        phone: r.phone,
-        role: r.role as "user" | "admin" | "owner" | "staff",
-        address: r.address || "",
-        addresses: Array.isArray(r.addresses) ? r.addresses : [],
-        points: r.points !== undefined ? Number(r.points) : 0,
+        name:
+          account?.name ||
+          (role === "owner" ? "Nanami Owner" : role === "admin" ? "Kitchen Admin" : "Member"),
+        email: session.email,
+        phone: account?.phone || "",
+        role,
+        address: account?.address || "",
+        addresses: Array.isArray(account?.addresses) ? account.addresses : [],
+        points: account?.points !== undefined ? Number(account.points) : 0,
         method: "Session",
       };
     }
-    return null;
-  } catch (err) {
-    console.warn("Failed to retrieve session from PostgreSQL:", err);
-    return null;
+  } catch (storageErr) {
+    console.warn("Failed to retrieve session from local storage fallback:", storageErr);
   }
+
+  return null;
 }
 
 export async function deleteSessionDb(token: string): Promise<boolean> {
-  if (!sql || !token) return false;
+  if (!token) return false;
+
   try {
-    await sql`DELETE FROM user_sessions WHERE id = ${token}`;
-    return true;
+    const { deleteSessionStorage } = await import("../server/persistent-storage");
+    deleteSessionStorage(token);
   } catch (err) {
-    console.warn("Failed to delete session from PostgreSQL:", err);
-    return false;
+    console.warn("Failed to delete session from storage:", err);
   }
+
+  if (sql) {
+    try {
+      await sql`DELETE FROM user_sessions WHERE id = ${token}`;
+    } catch (err) {
+      console.warn("Failed to delete session from PostgreSQL:", err);
+    }
+  }
+
+  return true;
 }

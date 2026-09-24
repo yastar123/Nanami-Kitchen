@@ -13,6 +13,15 @@ import type {
   MediaAsset,
 } from "../types";
 
+export interface UserSessionData {
+  id: string;
+  accountId: string;
+  email: string;
+  role: string;
+  createdAt: number;
+  expiresAt: number;
+}
+
 export interface StorageData {
   settings: Settings;
   cms: CmsContent;
@@ -23,6 +32,7 @@ export interface StorageData {
   accounts: Account[];
   staff: StaffMember[];
   mediaAssets: MediaAsset[];
+  sessions?: UserSessionData[];
 }
 
 const DATA_DIR = path.resolve(process.cwd(), "data");
@@ -52,7 +62,11 @@ export function getStorageData(): StorageData {
       const raw = fs.readFileSync(STORAGE_FILE, "utf-8");
       const parsed = JSON.parse(raw) as Partial<StorageData>;
       memoryState = {
-        settings: parsed.settings ?? (seedState.settings as AppSettings),
+        settings: {
+          currencySymbol: "N$",
+          ...(seedState.settings as AppSettings),
+          ...(parsed.settings || {}),
+        },
         cms: parsed.cms ?? (seedState.cms as CmsContent),
         menu: Array.isArray(parsed.menu) ? parsed.menu : (seedState.menu ?? []),
         orders: Array.isArray(parsed.orders) ? parsed.orders : (seedState.orders ?? []),
@@ -61,6 +75,7 @@ export function getStorageData(): StorageData {
         accounts: Array.isArray(parsed.accounts) ? parsed.accounts : (seedState.accounts ?? []),
         staff: Array.isArray(parsed.staff) ? parsed.staff : (seedState.staff ?? []),
         mediaAssets: Array.isArray(parsed.mediaAssets) ? parsed.mediaAssets : [],
+        sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
       };
       return memoryState;
     } catch (e) {
@@ -88,6 +103,7 @@ export function getStorageData(): StorageData {
     accounts: safeClone(seedState.accounts, []),
     staff: safeClone(seedState.staff, []),
     mediaAssets: [],
+    sessions: [],
   };
 
   saveStorageToFile(memoryState);
@@ -278,5 +294,35 @@ export function updateMediaAssetUsageStorage(id: string, usedByMenuIds: string[]
   persistStorage({
     ...current,
     mediaAssets: current.mediaAssets.map((m) => (m.id === id ? { ...m, usedByMenuIds } : m)),
+  });
+}
+
+export function saveSessionStorage(session: UserSessionData): void {
+  const current = getStorageData();
+  const sessions = (current.sessions || []).filter((s) => s.id !== session.id);
+  sessions.push(session);
+  persistStorage({
+    ...current,
+    sessions,
+  });
+}
+
+export function getSessionStorage(id: string): UserSessionData | null {
+  if (!id) return null;
+  const current = getStorageData();
+  const session = (current.sessions || []).find((s) => s.id === id);
+  if (!session) return null;
+  if (session.expiresAt && session.expiresAt < Date.now()) {
+    deleteSessionStorage(id);
+    return null;
+  }
+  return session;
+}
+
+export function deleteSessionStorage(id: string): void {
+  const current = getStorageData();
+  persistStorage({
+    ...current,
+    sessions: (current.sessions || []).filter((s) => s.id !== id),
   });
 }

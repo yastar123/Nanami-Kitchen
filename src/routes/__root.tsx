@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef, type ReactNode } from "react";
 import { actions } from "@/lib/store";
 import { getDatabaseState } from "@/lib/server-functions";
+import { getSessionToken } from "@/lib/session";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -212,7 +213,8 @@ function RootComponent() {
   }
 
   useEffect(() => {
-    if (!serverState) {
+    const token = getSessionToken();
+    if (token || !serverState) {
       actions.loadServerState();
     }
   }, [serverState]);

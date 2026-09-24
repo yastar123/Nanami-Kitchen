@@ -43,6 +43,7 @@ import {
   deleteAccountDb,
   loginServerFn,
   logoutServerFn,
+  registerServerFn,
   deleteStaffDb,
 } from "./server-functions";
 import { formatCurrency, setCurrencySymbol } from "./currency";
@@ -693,39 +694,70 @@ export const actions = {
     set((s) => ({ ...s, promos: s.promos.filter((p) => p.id !== id) }));
     deletePromoDb({ data: id }).catch(console.error);
   },
-  signUp(data: { name: string; email: string; phone: string; password: string }): {
+  async signUp(data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    address?: string;
+  }): Promise<{
     ok: boolean;
     error?: string;
     role?: "user" | "admin" | "owner" | "staff";
-  } {
+  }> {
     const email = data.email.trim().toLowerCase();
     if (!email.includes("@")) return { ok: false, error: "Please enter a valid email address." };
     if (data.password.length < 6)
       return { ok: false, error: "Password must be at least 6 characters." };
-    if (state.accounts.some((a) => a.email === email))
-      return { ok: false, error: "This email is already registered. Please sign in." };
-    const account: Account = {
-      id: uid(),
-      email,
-      password: data.password,
-      name: data.name.trim(),
-      phone: data.phone.trim(),
-    };
-    set((s) => ({
-      ...s,
-      accounts: [...s.accounts, account],
-      profile: {
-        ...s.profile,
-        name: account.name,
-        email: account.email,
-        phone: account.phone,
-        role: "user",
-        signedIn: true,
-        method: "Email",
-      },
-    }));
-    saveAccountDb({ data: account }).catch(console.error);
-    return { ok: true, role: "user" };
+
+    try {
+      const res = await registerServerFn({
+        data: {
+          name: data.name.trim(),
+          email,
+          phone: data.phone.trim(),
+          password: data.password,
+          address: data.address,
+        },
+      });
+
+      if (!res.ok || !res.account) {
+        return { ok: false, error: res.error || "Registration failed. Please try again." };
+      }
+
+      const account = res.account;
+      if (res.token) {
+        setSessionToken(res.token);
+      }
+
+      set((s) => ({
+        ...s,
+        accounts: s.accounts.some((a) => a.email.toLowerCase() === email)
+          ? s.accounts.map((a) => (a.email.toLowerCase() === email ? account : a))
+          : [...s.accounts, account],
+        profile: {
+          ...s.profile,
+          name: account.name,
+          email: account.email,
+          phone: account.phone,
+          role: "user",
+          address: account.address || s.profile.address,
+          addresses:
+            account.addresses && account.addresses.length ? account.addresses : s.profile.addresses,
+          points: account.points !== undefined ? account.points : 0,
+          signedIn: true,
+          method: "Email",
+        },
+      }));
+
+      // Asynchronously synchronize complete fresh state
+      actions.loadServerState().catch(console.error);
+
+      return { ok: true, role: "user" };
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      return { ok: false, error: err?.message || "Registration failed. Please try again." };
+    }
   },
   async signIn(
     email: string,
@@ -762,6 +794,10 @@ export const actions = {
             method: "Email",
           },
         }));
+
+        // Immediately sync database state for the authenticated role so accounts, orders & media are loaded
+        actions.loadServerState().catch(console.error);
+
         return { ok: true, role };
       }
       return { ok: false, error: res.error || "Invalid email or password." };
@@ -1303,21 +1339,29 @@ export const actions = {
       return { ...s, cms: updated };
     });
   },
-  saveMediaAsset(asset: MediaAsset) {
+  async saveMediaAsset(asset: MediaAsset) {
     set((s) => ({
       ...s,
       mediaAssets: s.mediaAssets.some((m) => m.id === asset.id)
         ? s.mediaAssets.map((m) => (m.id === asset.id ? asset : m))
-        : [...s.mediaAssets, asset],
+        : [asset, ...s.mediaAssets],
     }));
-    saveMediaAssetDb({ data: asset }).catch(console.error);
+    try {
+      await saveMediaAssetDb({ data: asset });
+    } catch (err) {
+      console.error("Failed to persist media asset:", err);
+    }
   },
-  deleteMediaAsset(id: string) {
+  async deleteMediaAsset(id: string) {
     set((s) => ({
       ...s,
       mediaAssets: s.mediaAssets.filter((m) => m.id !== id),
     }));
-    deleteMediaAssetDb({ data: id }).catch(console.error);
+    try {
+      await deleteMediaAssetDb({ data: id });
+    } catch (err) {
+      console.error("Failed to delete media asset:", err);
+    }
   },
   saveAccount(acc: Account) {
     set((s) => ({

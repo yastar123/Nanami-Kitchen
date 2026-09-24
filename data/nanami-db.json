@@ -1,5 +1,6 @@
 {
   "settings": {
+    "currencySymbol": "N$",
     "storeName": "Nanami Kitchen & Sushi Bar",
     "storeTagline": "Japanese comfort food, made fresh daily",
     "storeAddress": "12 Rosebank Road, Rosebank, Johannesburg",
@@ -39,79 +40,78 @@
     "heroSlogan": "Good Food. Made with Love",
     "heroCtaText": "Order Now",
     "announcement": {
-      "enabled": true,
+      "link": "/vouchers",
       "text": "🎉 Special Promo: Get 20% OFF all menu items with voucher code NANAMI20!",
       "type": "promo",
-      "link": "/vouchers"
+      "enabled": true
     },
     "welcomeScreen": {
+      "title": "Welcome to Nanami Kitchen",
       "enabled": true,
-      "durationSec": 1.2,
-      "title": "nanami",
-      "subtitle": "kitchen",
-      "slogan": "Good Food.\nMade with Love",
-      "imageUrl": ""
+      "imageUrl": "https://images.unsplash.com/photo-test-welcome-456.jpg",
+      "subtitle": "Fresh Japanese Cuisine in Windhoek",
+      "buttonText": "Order Now"
     },
     "socials": {
-      "instagram": "@nanami.kitchen",
       "tiktok": "@nanami.kitchen",
+      "mapsUrl": "https://maps.google.com/?q=Nanami+Kitchen",
       "whatsapp": "27812345678",
-      "mapsUrl": "https://maps.google.com/?q=Nanami+Kitchen"
+      "instagram": "@nanami.kitchen"
     },
     "aboutStory": "Nanami Kitchen serves authentic Japanese bento boxes, fiery crispy smashed chicken, and refreshing handcrafted beverages prepared fresh daily using high-quality ingredients.",
     "faqs": [
       {
         "id": "faq-1",
-        "question": "What is the estimated preparation and delivery time?",
+        "active": true,
         "answer": "Orders are freshly cooked in 15–20 minutes. Delivery time depends on your distance (approx. 15–30 minutes).",
-        "active": true
+        "question": "What is the estimated preparation and delivery time?"
       },
       {
         "id": "faq-2",
-        "question": "Does Nanami Kitchen offer a Pick-up (Takeaway) option?",
+        "active": true,
         "answer": "Yes, you can choose Pick-up at checkout with zero delivery fee.",
-        "active": true
+        "question": "Does Nanami Kitchen offer a Pick-up (Takeaway) option?"
       },
       {
         "id": "faq-3",
-        "question": "How do I redeem a discount voucher?",
+        "active": true,
         "answer": "Go to Vouchers, tap 'Apply' on your voucher or enter the code during Checkout.",
-        "active": true
+        "question": "How do I redeem a discount voucher?"
       },
       {
         "id": "faq-4",
-        "question": "Which payment methods are accepted?",
+        "active": true,
         "answer": "We accept Bank Transfer (EFT), E-Wallets / Capitec Pay, and Cash on Delivery / Pickup.",
-        "active": true
+        "question": "Which payment methods are accepted?"
       }
     ],
     "checkout": {
-      "detailsTitle": "Your Details",
-      "fullNameLabel": "Full Name",
-      "defaultFullName": "Nanami Owner",
-      "phoneLabel": "WhatsApp Number",
-      "defaultPhone": "0834567890",
-      "ewalletEnabled": true,
-      "ewalletLabel": "eWallet / Pay2Cell",
-      "ewalletSub": "(Scan QR or Mobile Transfer)",
-      "bankEnabled": true,
-      "bankLabel": "Bank Transfer / Instant EFT",
-      "bankSub": "(ATM/MBANK/IBANK)",
-      "codEnabled": true,
-      "codLabel": "Cash on Delivery",
       "codSub": "(For Pickup & Delivery)",
-      "instructionsTitle": "Payment Instructions",
-      "step1Text": "1. Transfer to the following account:",
-      "ewalletTitle": "E-Wallet",
-      "ewalletAccountName": "Nanami Kitchen",
-      "ewalletNumber": "0812345678 (Capitec Pay / SnapScan)",
-      "copyButtonText": "Copy",
-      "bankTitle": "EFT",
+      "bankSub": "(ATM/MBANK/IBANK)",
       "bankName": "First National Bank (FNB)",
+      "codLabel": "Cash on Delivery",
+      "bankLabel": "Bank Transfer / Instant EFT",
+      "bankTitle": "EFT",
+      "step1Text": "1. Transfer to the following account:",
+      "step2Text": "2. Upload proof of payment (Screenshot) in the WhatsApp chat after ordering.",
+      "codEnabled": true,
+      "ewalletSub": "(Scan QR or Mobile Transfer)",
+      "phoneLabel": "WhatsApp Number",
+      "bankEnabled": true,
+      "defaultPhone": "0834567890",
+      "detailsTitle": "Your Details",
+      "ewalletLabel": "eWallet / Pay2Cell",
+      "ewalletTitle": "E-Wallet",
+      "ewalletNumber": "0812345678 (Capitec Pay / SnapScan)",
+      "fullNameLabel": "Full Name",
+      "copyButtonText": "Copy",
+      "ewalletEnabled": true,
       "bankAccountName": "Nanami Kitchen CC",
-      "bankAccountNumber": "62123456789",
       "codInstructions": "Pay in cash when your order arrives or when you pick it up. Please prepare the exact amount if possible.",
-      "step2Text": "2. Upload proof of payment (Screenshot) in the WhatsApp chat after ordering."
+      "defaultFullName": "Nanami Owner",
+      "bankAccountNumber": "62123456789",
+      "instructionsTitle": "Payment Instructions",
+      "ewalletAccountName": "Nanami Kitchen"
     }
   },
   "menu": [
@@ -119,7 +119,7 @@
       "id": "m1",
       "name": "Teriyaki Chicken Bento",
       "description": "Grilled teriyaki chicken with warm rice and Japanese pickles.",
-      "price": 95,
+      "price": "95",
       "category": "Meals",
       "image": "/food-1.jpg",
       "available": true,
@@ -133,7 +133,6 @@
           "id": "size",
           "name": "Size",
           "type": "single",
-          "enabled": true,
           "choices": [
             {
               "id": "reg",
@@ -145,13 +144,13 @@
               "name": "Large",
               "price": 15
             }
-          ]
+          ],
+          "enabled": true
         },
         {
           "id": "topping",
           "name": "Extra Toppings",
           "type": "multi",
-          "enabled": true,
           "choices": [
             {
               "id": "egg",
@@ -168,10 +167,12 @@
               "name": "Extra Chili Sauce",
               "price": 10
             }
-          ]
+          ],
+          "enabled": true
         }
       ],
-      "specialRequestEnabled": true
+      "specialRequestEnabled": true,
+      "stock": 42
     },
     {
       "id": "m2",
@@ -368,6 +369,272 @@
   ],
   "orders": [
     {
+      "id": "ord-test-1790214574388",
+      "code": "NK-3150",
+      "createdAt": 1790214574388,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek"
+      }
+    },
+    {
+      "id": "ord-audit-1790214537543",
+      "code": "NK-AUDIT-6757",
+      "createdAt": "2026-09-24T01:48:57.543Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
+      "id": "ord-audit-1790214495109",
+      "code": "NK-AUDIT-1654",
+      "createdAt": "2026-09-24T01:48:15.109Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
+      "id": "ord-test-1790214440029",
+      "code": "NK-2019",
+      "createdAt": 1790214440029,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek"
+      }
+    },
+    {
+      "id": "ord-test-1790214321962",
+      "code": "NK-7343",
+      "createdAt": 1790214321962,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek"
+      }
+    },
+    {
+      "id": "ord-test-1790214314742",
+      "code": "NK-7680",
+      "createdAt": 1790214314742,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek"
+      }
+    },
+    {
+      "id": "ord-test-1790213887938",
+      "code": "NK-2518",
+      "createdAt": 1790213887938,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek"
+      }
+    },
+    {
+      "id": "ord-test-1790213866583",
+      "code": "NK-3051",
+      "createdAt": 1790213866583,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek"
+      }
+    },
+    {
       "id": "test-order-99",
       "code": "ORD-TEST-99",
       "createdAt": "2026-09-19T08:26:11.813Z",
@@ -554,6 +821,106 @@
         "HQ Nanami Kitchen, Rosebank, Johannesburg"
       ],
       "points": 1500
+    },
+    {
+      "id": "cust-d2ne0pemuev43zu",
+      "name": "Automated Test Customer",
+      "email": "cust_1790213866552@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-5mvshm4muev4kgy",
+      "name": "Automated Test Customer",
+      "email": "cust_1790213887904@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-jk1eq9vmuevdpsh",
+      "name": "Automated Test Customer",
+      "email": "cust_1790214314703@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-n3x4sa4muevdvd1",
+      "name": "Automated Test Customer",
+      "email": "cust_1790214321923@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-g6gngy0muevgeg8",
+      "name": "Automated Test Customer",
+      "email": "cust_1790214439972@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-fimr3y3muevhkz7",
+      "name": "Audit User",
+      "email": "audit_user_1790214495088@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-kxgeijdmuevihq5",
+      "name": "Audit User",
+      "email": "audit_user_1790214537531@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-yz5prl2muevja4i",
+      "name": "Automated Test Customer",
+      "email": "cust_1790214574336@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
     }
   ],
   "staff": [
@@ -603,5 +970,31 @@
       "createdAt": 1736467200000
     }
   ],
-  "mediaAssets": []
+  "mediaAssets": [],
+  "sessions": [
+    {
+      "id": "sess_tjclgzcvx1smuevja4k",
+      "accountId": "cust-yz5prl2muevja4i",
+      "email": "cust_1790214574336@example.com",
+      "role": "user",
+      "createdAt": 1790214574340,
+      "expiresAt": 1792806574340
+    },
+    {
+      "id": "sess_hqg9i2tr3eimuevja4q",
+      "accountId": "cust-yz5prl2muevja4i",
+      "email": "cust_1790214574336@example.com",
+      "role": "user",
+      "createdAt": 1790214574346,
+      "expiresAt": 1792806574346
+    },
+    {
+      "id": "sess_ua9kw8gqsmuevja50",
+      "accountId": "env-admin",
+      "email": "admin@nanami.id",
+      "role": "admin",
+      "createdAt": 1790214574356,
+      "expiresAt": 1792806574356
+    }
+  ]
 }

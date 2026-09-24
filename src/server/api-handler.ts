@@ -1,4 +1,4 @@
-import { sql, initDb, seedDbIfEmpty } from "../lib/db";
+import { sql, initDb, seedDbIfEmpty, createSessionDb } from "../lib/db";
 import { seedState } from "../lib/seed-data";
 import {
   resolveMedia,
@@ -19,6 +19,7 @@ import {
   saveCmsStorage,
   saveSettingsStorage,
   saveStaffStorage,
+  saveAccountStorage,
 } from "./persistent-storage";
 
 export async function handleApiRequest(request: Request): Promise<Response | null> {
@@ -375,6 +376,44 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           }
         }
         return new Response(JSON.stringify({ success: true, id }), {
+          status: 200,
+          headers: corsHeaders,
+        });
+      }
+
+      if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
+        const item = (await request.json()) as Record<string, any>;
+        const mergedItem = { ...item, id: id || item.id };
+        saveMenuItemStorage(mergedItem as any);
+        if (sql && dbReady) {
+          try {
+            await sql`
+              INSERT INTO menu_items (
+                id, name, description, price, category, image, available, prep_minutes, badges, stock, groups, special_request_enabled
+              ) VALUES (
+                ${mergedItem.id}, ${mergedItem.name}, ${mergedItem.description || ""}, ${mergedItem.price || 0}, ${mergedItem.category || "Meals"},
+                ${mergedItem.image || ""}, ${mergedItem.available !== false}, ${mergedItem.prepMinutes || 15},
+                ${sql.json(mergedItem.badges || [])}, ${mergedItem.stock ?? null}, ${sql.json(mergedItem.groups || [])},
+                ${mergedItem.specialRequestEnabled !== false}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name,
+                description = EXCLUDED.description,
+                price = EXCLUDED.price,
+                category = EXCLUDED.category,
+                image = EXCLUDED.image,
+                available = EXCLUDED.available,
+                prep_minutes = EXCLUDED.prep_minutes,
+                badges = EXCLUDED.badges,
+                stock = EXCLUDED.stock,
+                groups = EXCLUDED.groups,
+                special_request_enabled = EXCLUDED.special_request_enabled
+            `;
+          } catch (e) {
+            console.warn("Could not write menu item to PostgreSQL:", e);
+          }
+        }
+        return new Response(JSON.stringify({ success: true, item: mergedItem }), {
           status: 200,
           headers: corsHeaders,
         });
@@ -806,13 +845,115 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           headers: corsHeaders,
         });
       }
+      const sessionToken = await createSessionDb(found);
       const { password: _, ...safeUser } = found;
       return new Response(
-        JSON.stringify({ success: true, ok: true, user: safeUser, account: safeUser }),
+        JSON.stringify({
+          success: true,
+          ok: true,
+          user: safeUser,
+          account: safeUser,
+          sessionToken,
+        }),
         {
           status: 200,
           headers: corsHeaders,
         },
+      );
+    }
+
+    // 10b. Auth Register
+    if (pathname === "/api/auth/register" && request.method === "POST") {
+      const body = (await request.json()) as {
+        name?: string;
+        email?: string;
+        phone?: string;
+        password?: string;
+        address?: string;
+      };
+      const email = body["email"]?.trim().toLowerCase();
+      const name = body["name"]?.trim();
+      const phone = body["phone"]?.trim();
+      const password = body["password"];
+      const address = body["address"]?.trim() || "";
+
+      if (!email || !password || !name || !phone) {
+        return new Response(
+          JSON.stringify({ error: "Name, email, phone, and password are required", ok: false }),
+          { status: 400, headers: corsHeaders },
+        );
+      }
+
+      if (password.length < 6) {
+        return new Response(
+          JSON.stringify({ error: "Password must be at least 6 characters", ok: false }),
+          { status: 400, headers: corsHeaders },
+        );
+      }
+
+      const dbReady = await initDb();
+      let exists = false;
+
+      if (sql && dbReady) {
+        const rows =
+          (await sql`SELECT id FROM accounts WHERE LOWER(email) = ${email} LIMIT 1`) as any[];
+        if (rows.length > 0) exists = true;
+      }
+
+      if (!exists) {
+        const accounts = fallback.accounts || seedState.accounts || [];
+        if (accounts.some((a) => a.email.trim().toLowerCase() === email)) exists = true;
+      }
+
+      if (exists) {
+        return new Response(
+          JSON.stringify({ error: "This email is already registered. Please sign in.", ok: false }),
+          { status: 409, headers: corsHeaders },
+        );
+      }
+
+      const newAccount = {
+        id: "cust-" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
+        name,
+        email,
+        phone,
+        password,
+        role: "user" as const,
+        address,
+        addresses: address ? [address] : [],
+        points: 0,
+      };
+
+      saveAccountStorage(newAccount as any);
+
+      if (sql && dbReady) {
+        try {
+          await sql`
+            INSERT INTO accounts (id, email, password, name, phone, role, address, addresses, points)
+            VALUES (${newAccount.id}, ${email}, ${newAccount.password}, ${newAccount.name}, ${newAccount.phone}, ${newAccount.role}, ${newAccount.address || null}, ${sql.json(newAccount.addresses || [])}, ${newAccount.points})
+            ON CONFLICT (email) DO UPDATE SET
+              name = EXCLUDED.name,
+              phone = EXCLUDED.phone,
+              role = EXCLUDED.role,
+              address = EXCLUDED.address,
+              addresses = EXCLUDED.addresses
+          `;
+        } catch (e) {
+          console.warn("Could not insert registered account to PostgreSQL:", e);
+        }
+      }
+
+      const sessionToken = await createSessionDb(newAccount);
+      const { password: _, ...safeUser } = newAccount;
+      return new Response(
+        JSON.stringify({
+          success: true,
+          ok: true,
+          user: safeUser,
+          account: safeUser,
+          sessionToken,
+        }),
+        { status: 201, headers: corsHeaders },
       );
     }
 

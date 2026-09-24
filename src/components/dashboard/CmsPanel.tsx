@@ -246,6 +246,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
 
   const [saveToast, setSaveToast] = useState(false);
   const [showHeroGallery, setShowHeroGallery] = useState(false);
+  const [showWelcomeGallery, setShowWelcomeGallery] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const heroInputRef = useRef<HTMLInputElement>(null);
   const promoInputRef = useRef<HTMLInputElement>(null);
@@ -594,9 +595,23 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-foreground">
-                    Select From Image Library
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-foreground">
+                      Pilihan Gambar Bawaan (Presets)
+                    </label>
+                    {cms.heroImage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          actionsShadow.updateCms({ heroImage: "" });
+                          triggerToast();
+                        }}
+                        className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition"
+                      >
+                        <Trash2 className="size-3.5" /> Hapus / Reset Banner
+                      </button>
+                    )}
+                  </div>
                   <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {HERO_PRESETS.map((p) => {
                       const isSelected = (cms.heroImage || heroImg) === p.url;
@@ -604,7 +619,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                         <button
                           key={p.id}
                           onClick={() => {
-                            actionsShadow.updateCms({ heroImage: p.url === heroImg ? "" : p.url });
+                            actionsShadow.updateCms({ heroImage: p.url });
                             triggerToast();
                           }}
                           className={`group relative overflow-hidden rounded-xl border text-left transition ${
@@ -618,8 +633,9 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                             alt={p.name}
                             className="h-20 w-full object-cover transition group-hover:scale-105"
                           />
-                          <div className="bg-background/90 p-1.5">
+                          <div className="bg-background/90 p-1.5 flex items-center justify-between">
                             <p className="truncate text-[11px] font-medium">{p.name}</p>
+                            {isSelected && <Check className="size-3 text-primary shrink-0" />}
                           </div>
                         </button>
                       );
@@ -627,10 +643,10 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                   </div>
                 </div>
 
-                <div className="grid gap-3 pt-2 sm:grid-cols-2">
+                <div className="grid gap-3 pt-2 sm:grid-cols-3">
                   <div>
                     <label className="text-xs font-semibold text-foreground">
-                      Upload Own Photo
+                      Upload Foto Banner
                     </label>
                     <input
                       type="file"
@@ -644,20 +660,30 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       }
                     />
                     <button
+                      type="button"
                       onClick={() => heroInputRef.current?.click()}
                       className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary/30 px-3 py-2.5 text-xs font-semibold text-muted-foreground transition hover:border-primary hover:text-foreground"
                     >
-                      <Upload className="size-4" /> Upload Hero Photo
+                      <Upload className="size-4" /> Upload Dari Perangkat
                     </button>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-foreground">
-                      Or Image URL Link
-                    </label>
+                    <label className="text-xs font-semibold text-foreground">Media Gallery</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowHeroGallery(true)}
+                      className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                    >
+                      <ImageIcon className="size-4" /> Pilih dari Galeri
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-foreground">Atau URL Gambar</label>
                     <input
                       type="url"
-                      placeholder="https://example.com/hero-dish.jpg"
+                      placeholder="https://example.com/banner.jpg"
                       value={cms.heroImage}
                       onChange={(e) => {
                         actionsShadow.updateCms({ heroImage: e.target.value });
@@ -667,6 +693,34 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                     />
                   </div>
                 </div>
+
+                {cms.heroImage && (
+                  <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-3">
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={cms.heroImage}
+                        alt="Active hero banner"
+                        className="size-10 rounded-lg object-cover border"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-foreground">Banner Kustom Aktif</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          Banner ini ditampilkan di bagian atas beranda pelanggan.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        actionsShadow.updateCms({ heroImage: "" });
+                        triggerToast();
+                      }}
+                      className="flex items-center gap-1 rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive hover:bg-destructive/20 transition"
+                    >
+                      <Trash2 className="size-3.5" /> Hapus Banner
+                    </button>
+                  </div>
+                )}
               </div>
             </SectionCard>
 
@@ -771,6 +825,37 @@ export function CmsPanel(props: CmsPanelProps = {}) {
               </div>
             </div>
           </div>
+
+          {showHeroGallery && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
+              <div className="relative max-w-4xl w-full max-h-[90vh] bg-background rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div>
+                    <h3 className="font-bold">Media Library</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                      Pilih Foto Hero Banner
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowHeroGallery(false)}
+                    className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+                  >
+                    <X className="size-5" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4">
+                  <MediaGallery
+                    selectedUrl={cms.heroImage}
+                    onSelect={(url) => {
+                      actionsShadow.updateCms({ heroImage: url });
+                      setShowHeroGallery(false);
+                      triggerToast();
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1165,9 +1250,27 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                 </div>
 
                 <div className="space-y-2 pt-2 border-t border-border">
-                  <label className="text-xs font-semibold text-foreground">
-                    Splash Image / Opening Banner
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-foreground">
+                      Gambar Pembuka / Splash Image (Terpisah dari Hero Banner)
+                    </label>
+                    {cms.welcomeScreen.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          actionsShadow.updateCmsWelcome({ imageUrl: "" });
+                          triggerToast();
+                        }}
+                        className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition"
+                      >
+                        <Trash2 className="size-3.5" /> Hapus / Reset Gambar
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Gambar Welcome Screen ini berdiri sendiri dan tidak terikat dengan Hero Banner /
+                    Slider Banner.
+                  </p>
                   <input
                     type="file"
                     ref={welcomeInputRef}
@@ -1179,17 +1282,24 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       )
                     }
                   />
-                  <div className="grid gap-3 pt-2 sm:grid-cols-2">
+                  <div className="grid gap-3 pt-2 sm:grid-cols-3">
                     <button
                       type="button"
-                      onClick={() => setShowHeroGallery(true)}
+                      onClick={() => welcomeInputRef.current?.click()}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary/30 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:border-primary hover:text-foreground"
+                    >
+                      <Upload className="size-4" /> Upload Dari Perangkat
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowWelcomeGallery(true)}
                       className="flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/10"
                     >
-                      <ImageIcon className="size-4" /> Browse Media Library
+                      <ImageIcon className="size-4" /> Pilih dari Galeri
                     </button>
                     <input
                       type="url"
-                      placeholder="Or paste image URL (https://...)"
+                      placeholder="Atau URL gambar (https://...)"
                       value={cms.welcomeScreen.imageUrl || ""}
                       onChange={(e) => {
                         actionsShadow.updateCmsWelcome({ imageUrl: e.target.value });
@@ -1198,23 +1308,52 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       className={fieldClass}
                     />
                   </div>
+
+                  {cms.welcomeScreen.imageUrl && (
+                    <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-2.5">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={cms.welcomeScreen.imageUrl}
+                          alt="Splash preview"
+                          className="size-10 rounded-lg object-cover border"
+                        />
+                        <div>
+                          <p className="text-xs font-bold">Gambar Splash Kustom</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            Aktif ditampilkan saat splash pembuka.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          actionsShadow.updateCmsWelcome({ imageUrl: "" });
+                          triggerToast();
+                        }}
+                        className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
+                        title="Hapus gambar"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </SectionCard>
           </div>
 
-          {showHeroGallery && (
+          {showWelcomeGallery && (
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
               <div className="relative max-w-4xl w-full max-h-[90vh] bg-background rounded-3xl overflow-hidden shadow-2xl flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b">
                   <div>
                     <h3 className="font-bold">Media Library</h3>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                      Select Hero image
+                      Pilih Gambar Welcome Screen
                     </p>
                   </div>
                   <button
-                    onClick={() => setShowHeroGallery(false)}
+                    onClick={() => setShowWelcomeGallery(false)}
                     className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
                   >
                     <X className="size-5" />
@@ -1222,10 +1361,10 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                 </div>
                 <div className="flex-1 overflow-y-auto p-4">
                   <MediaGallery
-                    selectedUrl={cms.heroImage}
+                    selectedUrl={cms.welcomeScreen.imageUrl}
                     onSelect={(url) => {
-                      actionsShadow.updateCms({ heroImage: url });
-                      setShowHeroGallery(false);
+                      actionsShadow.updateCmsWelcome({ imageUrl: url });
+                      setShowWelcomeGallery(false);
                       triggerToast();
                     }}
                   />
@@ -1267,8 +1406,8 @@ export function CmsPanel(props: CmsPanelProps = {}) {
 
                 <div className="mt-6 w-full overflow-hidden rounded-xl">
                   <img
-                    src={cms.welcomeScreen.imageUrl || cms.heroImage || heroImg}
-                    alt="Hero dish"
+                    src={cms.welcomeScreen.imageUrl || heroImg}
+                    alt="Welcome Splash Dish"
                     className="h-24 w-full object-cover"
                   />
                 </div>

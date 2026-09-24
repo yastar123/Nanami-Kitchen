@@ -40,8 +40,9 @@ function RegisterPage() {
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (name.trim().length < 2) {
@@ -52,21 +53,41 @@ function RegisterPage() {
       setError("Invalid WhatsApp number.");
       return;
     }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
     if (password !== confirm) {
       setError("Passwords do not match.");
       return;
     }
-    const result = actions.signUp({ name, email, phone, password });
-    if (!result.ok) {
-      setError(result.error ?? "An error occurred.");
-      return;
+
+    setLoading(true);
+    try {
+      const cleanAddr = address.trim();
+      const result = await actions.signUp({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password,
+        address: cleanAddr || undefined,
+      });
+
+      if (!result.ok) {
+        setError(result.error ?? "An error occurred during registration.");
+        setLoading(false);
+        return;
+      }
+
+      if (cleanAddr) {
+        actions.updateProfile({ address: cleanAddr });
+        actions.saveAddress(cleanAddr);
+      }
+      navigate({ to: "/" });
+    } catch (err: any) {
+      setError(err?.message || "Registration failed. Please try again.");
+      setLoading(false);
     }
-    const clean = address.trim();
-    if (clean) {
-      actions.updateProfile({ address: clean });
-      actions.saveAddress(clean);
-    }
-    navigate({ to: "/" });
   }
 
   if (profile.signedIn) {
@@ -195,10 +216,10 @@ function RegisterPage() {
 
         <button
           type="submit"
-          disabled={!email || !password || !confirm || !name || !phone}
+          disabled={loading || !email || !password || !confirm || !name || !phone}
           className="!mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
         >
-          Create Account
+          {loading ? "Creating Account..." : "Create Account"}
         </button>
       </form>
 

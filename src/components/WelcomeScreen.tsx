@@ -8,7 +8,7 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
   const cms = useStore((s) => s.cms);
 
   const logoSrc = cms?.logoUrl || defaultLogo;
-  const heroSrc = cms?.welcomeScreen?.imageUrl || cms?.heroImage || defaultHeroImg;
+  const heroSrc = cms?.welcomeScreen?.imageUrl || defaultHeroImg;
   const title = cms?.welcomeScreen?.title || cms?.brandName || "nanami";
   const subtitle = cms?.welcomeScreen?.subtitle || cms?.brandSuffix || "kitchen";
   const slogan = cms?.welcomeScreen?.slogan || "Good Food.\nMade with Love";
