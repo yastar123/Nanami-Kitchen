@@ -34,7 +34,7 @@
     "brandSuffix": "kitchen",
     "tagline": "Good food, made with love.",
     "description": "Delicious bento boxes, crispy chicken, snacks, and refreshing handcrafted drinks made fresh for families and co-workers.",
-    "heroImage": "",
+    "heroImage": "https://images.unsplash.com/photo-audit-hero-123.jpg",
     "heroTitleLine1": "Good Food.",
     "heroTitleLine2": "Made with Love",
     "heroSlogan": "Good Food. Made with Love",
@@ -46,11 +46,9 @@
       "enabled": true
     },
     "welcomeScreen": {
-      "title": "Welcome to Nanami Kitchen",
       "enabled": true,
-      "imageUrl": "https://images.unsplash.com/photo-test-welcome-456.jpg",
-      "subtitle": "Fresh Japanese Cuisine in Windhoek",
-      "buttonText": "Order Now"
+      "imageUrl": "https://images.unsplash.com/photo-audit-welcome-456.jpg",
+      "duration": 3500
     },
     "socials": {
       "tiktok": "@nanami.kitchen",
@@ -368,6 +366,141 @@
     }
   ],
   "orders": [
+    {
+      "id": "ord-audit-1790304242821",
+      "code": "NK-AUDIT-7824",
+      "createdAt": "2026-09-25T02:44:02.821Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
+      "id": "ord-audit-1790304035499",
+      "code": "NK-AUDIT-1804",
+      "createdAt": "2026-09-25T02:40:35.499Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
+      "id": "ord-audit-1790304001545",
+      "code": "NK-AUDIT-1990",
+      "createdAt": "2026-09-25T02:40:01.545Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "new",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
+      "id": "ord-test-1790303924623",
+      "code": "NK-1236",
+      "createdAt": 1790303924623,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek"
+      }
+    },
     {
       "id": "ord-test-1790214574388",
       "code": "NK-3150",
@@ -921,6 +1054,52 @@
         "100 Sam Nujoma Drive, Windhoek"
       ],
       "points": 0
+    },
+    {
+      "id": "cust-jq0arfrmugcqd77",
+      "name": "Automated Test Customer",
+      "email": "cust_1790303924560@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-lm82oaomugcs0lc",
+      "name": "Audit User",
+      "email": "audit_user_1790304001536@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-vtlwtlrmugcsqsi",
+      "name": "Audit User",
+      "email": "audit_user_1790304035489@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-25fxdvcmugcx6rh",
+      "name": "Audit User",
+      "email": "audit_user_1790304242812@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
     }
   ],
   "staff": [
@@ -995,6 +1174,78 @@
       "role": "admin",
       "createdAt": 1790214574356,
       "expiresAt": 1792806574356
+    },
+    {
+      "id": "sess_mhbj65t8nndmugcqd79",
+      "accountId": "cust-jq0arfrmugcqd77",
+      "email": "cust_1790303924560@example.com",
+      "role": "user",
+      "createdAt": 1790303924565,
+      "expiresAt": 1792895924565
+    },
+    {
+      "id": "sess_uhtgiczawoemugcqd7k",
+      "accountId": "cust-jq0arfrmugcqd77",
+      "email": "cust_1790303924560@example.com",
+      "role": "user",
+      "createdAt": 1790303924576,
+      "expiresAt": 1792895924576
+    },
+    {
+      "id": "sess_5vb88n162s2mugcqd7u",
+      "accountId": "demo-admin",
+      "email": "admin@nanami.id",
+      "role": "admin",
+      "createdAt": 1790303924586,
+      "expiresAt": 1792895924586
+    },
+    {
+      "id": "sess_uzv04q58wjrmugcs0ld",
+      "accountId": "cust-lm82oaomugcs0lc",
+      "email": "audit_user_1790304001536@example.com",
+      "role": "user",
+      "createdAt": 1790304001538,
+      "expiresAt": 1792896001537
+    },
+    {
+      "id": "sess_unl0ve52eemugcs0lh",
+      "accountId": "cust-lm82oaomugcs0lc",
+      "email": "audit_user_1790304001536@example.com",
+      "role": "user",
+      "createdAt": 1790304001541,
+      "expiresAt": 1792896001541
+    },
+    {
+      "id": "sess_horyvx1y8pmugcsqsi",
+      "accountId": "cust-vtlwtlrmugcsqsi",
+      "email": "audit_user_1790304035489@example.com",
+      "role": "user",
+      "createdAt": 1790304035490,
+      "expiresAt": 1792896035490
+    },
+    {
+      "id": "sess_ftb825mzoqjmugcsqsn",
+      "accountId": "cust-vtlwtlrmugcsqsi",
+      "email": "audit_user_1790304035489@example.com",
+      "role": "user",
+      "createdAt": 1790304035495,
+      "expiresAt": 1792896035495
+    },
+    {
+      "id": "sess_2vuz04z9dqtmugcx6rh",
+      "accountId": "cust-25fxdvcmugcx6rh",
+      "email": "audit_user_1790304242812@example.com",
+      "role": "user",
+      "createdAt": 1790304242814,
+      "expiresAt": 1792896242813
+    },
+    {
+      "id": "sess_6naj9j5exnpmugcx6rl",
+      "accountId": "cust-25fxdvcmugcx6rh",
+      "email": "audit_user_1790304242812@example.com",
+      "role": "user",
+      "createdAt": 1790304242817,
+      "expiresAt": 1792896242817
     }
   ]
 }

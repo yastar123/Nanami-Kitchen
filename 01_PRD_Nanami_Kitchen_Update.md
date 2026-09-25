@@ -3,7 +3,7 @@
 **Versi:** 1.4.0  
 **Tanggal:** September 2026  
 **Status:** Implemented & Production Ready  
-**Basis:** PRD v1.0.0 + Feedback List Client + WhatsApp Settings Customization Suite  
+**Basis:** PRD v1.0.0 + Feedback List Client + WhatsApp Settings Customization Suite
 
 ---
 
@@ -19,13 +19,13 @@ Aplikasi Nanami Kitchen beroperasi di pasar **Namibia** (mata uang N$, layanan e
 
 ### 2.1 Perilaku per Role
 
-| Role                               | Wajib Login?                                                                           | Alasan                                                          |
-| ---------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `user` (Customer)                  | **Tidak** — guest checkout diizinkan penuh                                             | Mengurangi friksi order dan mempercepat konversi belanja        |
-| `user` (Customer) — opsional login | Ya, jika ingin akses `/profile`, `/orders` (riwayat), poin loyalitas, alamat tersimpan | Fitur-fitur akun personal                                       |
-| `staff`                            | **Ya**, selalu                                                                         | Akses `/admin` Kitchen Kanban Board & operasional dapur         |
-| `admin`                            | **Ya**, selalu                                                                         | Akses penuh `/admin/*`                                          |
-| `owner`                            | **Ya**, selalu                                                                         | Akses penuh `/owner/*` termasuk WhatsApp Suite, CMS, & Finance  |
+| Role                               | Wajib Login?                                                                           | Alasan                                                         |
+| ---------------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `user` (Customer)                  | **Tidak** — guest checkout diizinkan penuh                                             | Mengurangi friksi order dan mempercepat konversi belanja       |
+| `user` (Customer) — opsional login | Ya, jika ingin akses `/profile`, `/orders` (riwayat), poin loyalitas, alamat tersimpan | Fitur-fitur akun personal                                      |
+| `staff`                            | **Ya**, selalu                                                                         | Akses `/admin` Kitchen Kanban Board & operasional dapur        |
+| `admin`                            | **Ya**, selalu                                                                         | Akses penuh `/admin/*`                                         |
+| `owner`                            | **Ya**, selalu                                                                         | Akses penuh `/owner/*` termasuk WhatsApp Suite, CMS, & Finance |
 
 ### 2.2 Alur Guest Checkout
 
@@ -47,56 +47,56 @@ Aplikasi Nanami Kitchen beroperasi di pasar **Namibia** (mata uang N$, layanan e
 
 ### 3.2 Customer PWA — Home & Navigasi
 
-| #   | Requirement                                                                                   | Status  |
-| --- | --------------------------------------------------------------------------------------------- | ------- |
-| H1  | Header Home bersih tanpa logo teks redundan (logo eksklusif di Splash Screen & Loading)       | Selesai |
-| H2  | Hero banner promo full-width di paling atas layar dengan info kurasi dan tombol Order Now     | Selesai |
-| H3  | Toggle Pickup/Delivery tepat di bawah hero banner dan di atas bilah pencarian                 | Selesai |
-| H4  | Kategori berbentuk text-only pill button tanpa ikon                                           | Selesai |
-| H5  | Tombol pemicu pencarian menyatu di baris pill kategori (kanan)                                | Selesai |
-| H6  | Bottom nav 4 tab: Home (`/`), Cart (`/cart`), Orders (`/orders`), Profile (`/profile`)        | Selesai |
+| #   | Requirement                                                                               | Status  |
+| --- | ----------------------------------------------------------------------------------------- | ------- |
+| H1  | Header Home bersih tanpa logo teks redundan (logo eksklusif di Splash Screen & Loading)   | Selesai |
+| H2  | Hero banner promo full-width di paling atas layar dengan info kurasi dan tombol Order Now | Selesai |
+| H3  | Toggle Pickup/Delivery tepat di bawah hero banner dan di atas bilah pencarian             | Selesai |
+| H4  | Kategori berbentuk text-only pill button tanpa ikon                                       | Selesai |
+| H5  | Tombol pemicu pencarian menyatu di baris pill kategori (kanan)                            | Selesai |
+| H6  | Bottom nav 4 tab: Home (`/`), Cart (`/cart`), Orders (`/orders`), Profile (`/profile`)    | Selesai |
 
 ### 3.3 Customer PWA — Katalog Menu & Kustomisasi
 
-| #   | Requirement                                                                                 | Status  |
-| --- | ------------------------------------------------------------------------------------------- | ------- |
-| M1  | Section **"Must Try!"** di paling atas katalog (grid 2x2, foto 1:1, 4–6 item)               | Selesai |
-| M2  | Katalog vertikal per kategori dengan ScrollSpy otomatis                                     | Selesai |
-| M3  | 5 kategori baku terstandarisasi: `Meals`, `Snacks`, `Drinks`, `Combos`, `Others`            | Selesai |
-| M4  | Toggle ON/OFF grup varian per produk (misal: Spice Level aktif untuk bento, mati di snack)  | Selesai |
-| M5  | Add-on opsi dengan harga dinamis (`priceDelta`); nilai 0 tampil bersih tanpa label harga     | Selesai |
-| M6  | Special Request (catatan dapur) per produk yang diteruskan ke keranjang, struk, & WhatsApp  | Selesai |
+| #   | Requirement                                                                                | Status  |
+| --- | ------------------------------------------------------------------------------------------ | ------- |
+| M1  | Section **"Must Try!"** di paling atas katalog (grid 2x2, foto 1:1, 4–6 item)              | Selesai |
+| M2  | Katalog vertikal per kategori dengan ScrollSpy otomatis                                    | Selesai |
+| M3  | 5 kategori baku terstandarisasi: `Meals`, `Snacks`, `Drinks`, `Combos`, `Others`           | Selesai |
+| M4  | Toggle ON/OFF grup varian per produk (misal: Spice Level aktif untuk bento, mati di snack) | Selesai |
+| M5  | Add-on opsi dengan harga dinamis (`priceDelta`); nilai 0 tampil bersih tanpa label harga   | Selesai |
+| M6  | Special Request (catatan dapur) per produk yang diteruskan ke keranjang, struk, & WhatsApp | Selesai |
 
 ### 3.4 Customer PWA — Pembayaran & WhatsApp Ordering
 
-| #   | Requirement                                                                                  | Status  |
-| --- | -------------------------------------------------------------------------------------------- | ------- |
-| PM1 | Opsi eWallet lokal Namibia "eWallet / Pay2Cell"                                              | Selesai |
-| PM2 | Cash on Delivery (COD) dengan toggle ON/OFF global di Owner Settings                         | Selesai |
-| PM3 | PPN / VAT 15% dengan toggle ON/OFF dan persentase yang dapat disesuaikan                     | Selesai |
-| PM4 | Tombol salin nomor rekening bank transfer instan                                             | Selesai |
-| PM5 | **WhatsApp Settings Suite (`/owner/whatsapp`)**: Custom template editor, presets, & simulator| Selesai |
+| #   | Requirement                                                                                   | Status  |
+| --- | --------------------------------------------------------------------------------------------- | ------- |
+| PM1 | Opsi eWallet lokal Namibia "eWallet / Pay2Cell"                                               | Selesai |
+| PM2 | Cash on Delivery (COD) dengan toggle ON/OFF global di Owner Settings                          | Selesai |
+| PM3 | PPN / VAT 15% dengan toggle ON/OFF dan persentase yang dapat disesuaikan                      | Selesai |
+| PM4 | Tombol salin nomor rekening bank transfer instan                                              | Selesai |
+| PM5 | **WhatsApp Settings Suite (`/owner/whatsapp`)**: Custom template editor, presets, & simulator | Selesai |
 
 ### 3.5 Admin & Owner Panel
 
 | #   | Requirement                                                                                   | Status  |
 | --- | --------------------------------------------------------------------------------------------- | ------- |
 | O1  | Order Management page di sidebar (tabel pesanan scannable, filter status, action status)      | Selesai |
-| O2  | Manual Save System: Tombol **[Save Changes]** + StickySaveBar + UnsavedChangesPrompt dialog    | Selesai |
-| O3  | Sakelar ketersediaan stok instan (Available/Sold Out) di `/admin/stock`                      | Selesai |
+| O2  | Manual Save System: Tombol **[Save Changes]** + StickySaveBar + UnsavedChangesPrompt dialog   | Selesai |
+| O3  | Sakelar ketersediaan stok instan (Available/Sold Out) di `/admin/stock`                       | Selesai |
 | O4  | Simbol mata uang **N$** (Namibia Dollar) dan locale `en-ZA` terpusat di seluruh titik         | Selesai |
 | O5  | Media Gallery Library (`/owner/media` dan `/admin/media`) untuk kelola dan pakai ulang foto   | Selesai |
 | O6  | Visual CMS (`/owner/cms`) dan Live Smartphone Simulator (`/owner/preview`)                    | Selesai |
-| O7  | Pemisahan modul Accounts & Staff (`/owner/staff`) vs direktori pelanggan (`/admin/customers`)| Selesai |
+| O7  | Pemisahan modul Accounts & Staff (`/owner/staff`) vs direktori pelanggan (`/admin/customers`) | Selesai |
 | O8  | Kitchen Kanban Board dengan peringatan keterlambatan masak (>30 menit)                        | Selesai |
 | O9  | Pencetakan struk kasir termal (58mm/80mm) + fitur Thermal Auto-Print saat mulai memasak       | Selesai |
 | O10 | Modul Pengaturan WhatsApp (`/owner/whatsapp`) lengkap dengan template editor dan chat mockup  | Selesai |
 
 ### 3.6 Konsistensi Bahasa
 
-| #   | Requirement                                                                                   | Status  |
-| --- | --------------------------------------------------------------------------------------------- | ------- |
-| L1  | Standarisasi seluruh antarmuka (Storefront, Admin, Owner, WhatsApp Settings) ke Bahasa Inggris| Selesai |
+| #   | Requirement                                                                                    | Status  |
+| --- | ---------------------------------------------------------------------------------------------- | ------- |
+| L1  | Standarisasi seluruh antarmuka (Storefront, Admin, Owner, WhatsApp Settings) ke Bahasa Inggris | Selesai |
 
 ---
 

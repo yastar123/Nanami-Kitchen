@@ -1,8 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   AlertCircle,
+  ArrowDown,
+  ArrowUp,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
   ExternalLink,
   Eye,
   HelpCircle,
@@ -12,9 +17,13 @@ import {
   LayoutTemplate,
   MessageSquare,
   Palette,
+  Pause,
+  Pencil,
+  Play,
   Plus,
   RefreshCw,
   Share2,
+  SlidersHorizontal,
   Smartphone,
   Sparkles,
   Tag,
@@ -23,8 +32,6 @@ import {
   UtensilsCrossed,
   Volume2,
   X,
-  Pencil,
-  CreditCard,
 } from "lucide-react";
 import {
   actions,
@@ -247,10 +254,27 @@ export function CmsPanel(props: CmsPanelProps = {}) {
   const [saveToast, setSaveToast] = useState(false);
   const [showHeroGallery, setShowHeroGallery] = useState(false);
   const [showWelcomeGallery, setShowWelcomeGallery] = useState(false);
+  const [activeGallerySlideId, setActiveGallerySlideId] = useState<string | null>(null);
+
+  // Interactive Hero Carousel state
+  const [carouselPreviewIdx, setCarouselPreviewIdx] = useState(0);
+  const [carouselAutoPlay, setCarouselAutoPlay] = useState(true);
+  const [carouselViewMode, setCarouselViewMode] = useState<"app" | "banner">("app");
+  const [showAddSlideForm, setShowAddSlideForm] = useState(false);
+  const [newSlideForm, setNewSlideForm] = useState({
+    title: "",
+    subtitle: "",
+    badge: "PROMO",
+    imageUrl: "",
+    link: "",
+  });
+
   const logoInputRef = useRef<HTMLInputElement>(null);
   const heroInputRef = useRef<HTMLInputElement>(null);
   const promoInputRef = useRef<HTMLInputElement>(null);
   const welcomeInputRef = useRef<HTMLInputElement>(null);
+  const slideFileInputRef = useRef<HTMLInputElement>(null);
+  const [activeUploadSlideId, setActiveUploadSlideId] = useState<string | null>(null);
 
   // New Promo form state
   const [promoTitle, setPromoTitle] = useState("");
@@ -265,6 +289,147 @@ export function CmsPanel(props: CmsPanelProps = {}) {
   const triggerToast = () => {
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2500);
+  };
+
+  // Carousel slides derived list (promos or default fallback)
+  const currentHeroSlides: Promo[] = useMemo(() => {
+    if (promos.length > 0) return promos;
+    return [
+      {
+        id: "p-signature",
+        title: "Signature Bento Teriyaki",
+        subtitle: "Bento premium ayam teriyaki panggang nikmat",
+        badge: "SIGNATURE",
+        imageUrl: cms.heroImage || heroImg,
+        link: "/menu",
+        active: true,
+      },
+    ];
+  }, [promos, cms.heroImage]);
+
+  // Auto-play timer for Live Carousel Preview
+  useEffect(() => {
+    if (!carouselAutoPlay) return;
+    const activeCount = currentHeroSlides.filter((s) => s.active !== false).length;
+    if (activeCount <= 1) return;
+    const timer = setInterval(() => {
+      setCarouselPreviewIdx((prev) => (prev + 1) % activeCount);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [carouselAutoPlay, currentHeroSlides]);
+
+  useEffect(() => {
+    const activeCount = currentHeroSlides.filter((s) => s.active !== false).length;
+    if (carouselPreviewIdx >= activeCount && activeCount > 0) {
+      setCarouselPreviewIdx(0);
+    }
+  }, [currentHeroSlides, carouselPreviewIdx]);
+
+  const handleMoveSlide = (index: number, direction: "up" | "down") => {
+    const targetIdx = direction === "up" ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= promos.length) return;
+    const next = [...promos];
+    const [moved] = next.splice(index, 1);
+    if (!moved) return;
+    next.splice(targetIdx, 0, moved);
+    if (props.onChangePromos) {
+      props.onChangePromos(next);
+    } else {
+      actionsShadow.savePromo(moved);
+    }
+    // Sync cms.heroImage with first slide if available
+    if (next[0]?.imageUrl) {
+      actionsShadow.updateCms({ heroImage: next[0].imageUrl });
+    }
+    setCarouselPreviewIdx(targetIdx);
+    triggerToast();
+  };
+
+  const handleUpdateSlide = (id: string, patch: Partial<Promo>) => {
+    const targetPromo = promos.find((p) => p.id === id);
+    if (!targetPromo) {
+      // If editing default fallback slide, initialize promos array
+      const initialSlides = currentHeroSlides.map((p) => (p.id === id ? { ...p, ...patch } : p));
+      if (props.onChangePromos) {
+        props.onChangePromos(initialSlides);
+      } else {
+        initialSlides.forEach((s) => actionsShadow.savePromo(s));
+      }
+      triggerToast();
+      return;
+    }
+    const updated = promos.map((p) => (p.id === id ? { ...p, ...patch } : p));
+    if (props.onChangePromos) {
+      props.onChangePromos(updated);
+    } else {
+      actionsShadow.savePromo({ ...targetPromo, ...patch });
+    }
+    if (id === promos[0]?.id && patch.imageUrl) {
+      actionsShadow.updateCms({ heroImage: patch.imageUrl });
+    }
+    triggerToast();
+  };
+
+  const handleDeleteSlide = (id: string) => {
+    const updated = promos.filter((p) => p.id !== id);
+    if (props.onChangePromos) {
+      props.onChangePromos(updated);
+    } else {
+      actionsShadow.deletePromo(id);
+    }
+    if (carouselPreviewIdx >= updated.length && updated.length > 0) {
+      setCarouselPreviewIdx(0);
+    }
+    triggerToast();
+  };
+
+  const handleLoadDefaultCarousel = () => {
+    const defaultSlides: Promo[] = [
+      {
+        id: "p1",
+        title: "Bento Teriyaki Signature",
+        subtitle: "Ayam teriyaki panggang lezat dengan saus otentik",
+        badge: "SIGNATURE",
+        imageUrl: heroImg,
+        link: "/menu",
+        active: true,
+      },
+      {
+        id: "p2",
+        title: "Crispy Smashed Chicken 20% OFF",
+        subtitle: "Ayam geprek renyah pedas gurih — kode: NANAMI20",
+        badge: "HOT PROMO",
+        imageUrl: food2,
+        link: "/menu",
+        active: true,
+      },
+      {
+        id: "p3",
+        title: "Crispy Snack Platter",
+        subtitle: "Camilan renyah pas untuk teman nongkrong",
+        badge: "BEST SELLER",
+        imageUrl: food3,
+        link: "/menu",
+        active: true,
+      },
+      {
+        id: "p4",
+        title: "Handcrafted Matcha & Boba",
+        subtitle: "Minuman segar boba manis dan creamy dingin",
+        badge: "REFRESHING",
+        imageUrl: food4,
+        link: "/menu",
+        active: true,
+      },
+    ];
+    if (props.onChangePromos) {
+      props.onChangePromos(defaultSlides);
+    } else {
+      defaultSlides.forEach((s) => actionsShadow.savePromo(s));
+    }
+    actionsShadow.updateCms({ heroImage: heroImg, heroActive: true });
+    setCarouselPreviewIdx(0);
+    triggerToast();
   };
 
   const handleFileUpload = async (
@@ -563,174 +728,517 @@ export function CmsPanel(props: CmsPanelProps = {}) {
         </div>
       )}
 
-      {/* TAB 2: HERO BANNER & SLOGAN */}
+      {/* TAB 2: HERO BANNER & CAROUSEL SLIDES */}
       {activeTab === "hero" && (
         <div className="grid gap-6 lg:grid-cols-12">
+          {/* Left Column: Carousel Slide Sequence & Controls */}
           <div className="space-y-6 lg:col-span-7">
+            {/* Carousel Master Settings Card */}
             <SectionCard
-              title="Main Hero Banner Image"
-              description="Primary image featured at the top of home screen and welcome splash."
+              title="Pengaturan Hero Banner & Promo Carousel"
+              description="Atur urutan banner carousel beranda pelanggan: carousel pertama gambar apa, carousel kedua gambar apa, teks, dan link promo."
             >
               <div className="space-y-4">
-                <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/30 p-3.5">
+                <div className="flex flex-col gap-3 rounded-2xl border border-border bg-secondary/30 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Hero Banner Status</p>
-                    <p className="text-xs text-muted-foreground">
-                      Show hero section on home screen.
+                    <div className="flex items-center gap-2">
+                      <span className="flex size-6 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-xs">
+                        {currentHeroSlides.filter((s) => s.active !== false).length}
+                      </span>
+                      <p className="text-sm font-bold text-foreground">
+                        Status Banner Carousel Beranda
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {cms.heroActive !== false
+                        ? "Carousel aktif dan berputar otomatis di bagian atas aplikasi pelanggan."
+                        : "Hero carousel saat ini dinonaktifkan dari beranda pelanggan."}
                     </p>
                   </div>
-                  <button
-                    onClick={() => {
-                      actionsShadow.updateCms({ heroActive: !cms.heroActive });
-                      triggerToast();
-                    }}
-                    className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
-                      cms.heroActive
-                        ? "bg-primary text-primary-foreground shadow-sm shadow-primary/30"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {cms.heroActive ? "ACTIVE" : "INACTIVE"}
-                  </button>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-foreground">
-                      Pilihan Gambar Bawaan (Presets)
-                    </label>
-                    {cms.heroImage && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          actionsShadow.updateCms({ heroImage: "" });
-                          triggerToast();
-                        }}
-                        className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition"
-                      >
-                        <Trash2 className="size-3.5" /> Hapus / Reset Banner
-                      </button>
-                    )}
-                  </div>
-                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {HERO_PRESETS.map((p) => {
-                      const isSelected = (cms.heroImage || heroImg) === p.url;
-                      return (
-                        <button
-                          key={p.id}
-                          onClick={() => {
-                            actionsShadow.updateCms({ heroImage: p.url });
-                            triggerToast();
-                          }}
-                          className={`group relative overflow-hidden rounded-xl border text-left transition ${
-                            isSelected
-                              ? "border-primary ring-2 ring-primary/40"
-                              : "border-border hover:border-muted-foreground"
-                          }`}
-                        >
-                          <img
-                            src={p.url}
-                            alt={p.name}
-                            className="h-20 w-full object-cover transition group-hover:scale-105"
-                          />
-                          <div className="bg-background/90 p-1.5 flex items-center justify-between">
-                            <p className="truncate text-[11px] font-medium">{p.name}</p>
-                            {isSelected && <Check className="size-3 text-primary shrink-0" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="grid gap-3 pt-2 sm:grid-cols-3">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground">
-                      Upload Foto Banner
-                    </label>
-                    <input
-                      type="file"
-                      ref={heroInputRef}
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleFileUpload(e, (base64) =>
-                          actionsShadow.updateCms({ heroImage: base64 }),
-                        )
-                      }
-                    />
-                    <button
-                      type="button"
-                      onClick={() => heroInputRef.current?.click()}
-                      className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary/30 px-3 py-2.5 text-xs font-semibold text-muted-foreground transition hover:border-primary hover:text-foreground"
-                    >
-                      <Upload className="size-4" /> Upload Dari Perangkat
-                    </button>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-foreground">Media Gallery</label>
-                    <button
-                      type="button"
-                      onClick={() => setShowHeroGallery(true)}
-                      className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
-                    >
-                      <ImageIcon className="size-4" /> Pilih dari Galeri
-                    </button>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-foreground">Atau URL Gambar</label>
-                    <input
-                      type="url"
-                      placeholder="https://example.com/banner.jpg"
-                      value={cms.heroImage}
-                      onChange={(e) => {
-                        actionsShadow.updateCms({ heroImage: e.target.value });
-                        triggerToast();
-                      }}
-                      className={fieldClass}
-                    />
-                  </div>
-                </div>
-
-                {cms.heroImage && (
-                  <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-3">
-                    <div className="flex items-center gap-2.5">
-                      <img
-                        src={cms.heroImage}
-                        alt="Active hero banner"
-                        className="size-10 rounded-lg object-cover border"
-                      />
-                      <div>
-                        <p className="text-xs font-bold text-foreground">Banner Kustom Aktif</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Banner ini ditampilkan di bagian atas beranda pelanggan.
-                        </p>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => {
-                        actionsShadow.updateCms({ heroImage: "" });
+                        actionsShadow.updateCms({ heroActive: !cms.heroActive });
                         triggerToast();
                       }}
-                      className="flex items-center gap-1 rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive hover:bg-destructive/20 transition"
+                      className={`rounded-xl px-4 py-2 text-xs font-bold transition shadow-sm ${
+                        cms.heroActive !== false
+                          ? "bg-primary text-primary-foreground shadow-primary/20"
+                          : "bg-muted text-muted-foreground"
+                      }`}
                     >
-                      <Trash2 className="size-3.5" /> Hapus Banner
+                      {cms.heroActive !== false ? "CAROUSEL AKTIF" : "NONAKTIF"}
                     </button>
                   </div>
+                </div>
+
+                {/* Fast Action Buttons: Add Slide & Load Default Presets */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4 pt-1">
+                  <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <SlidersHorizontal className="size-3.5 text-primary" />
+                    Urutan Banner Carousel ({promos.length || 1} Slide)
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddSlideForm((v) => !v)}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+                    >
+                      <Plus className="size-3.5" />
+                      {showAddSlideForm ? "Tutup Form Tambah" : "Tambah Slide Baru"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleLoadDefaultCarousel}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                    >
+                      <RefreshCw className="size-3" />
+                      Muat 4 Banner Bawaan
+                    </button>
+                  </div>
+                </div>
+
+                {/* Add New Slide Form Card (Collapsible) */}
+                {showAddSlideForm && (
+                  <div className="rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                        <Sparkles className="size-3.5" />
+                        Tambah Slide Carousel Baru
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddSlideForm(false)}
+                        className="p-1 text-muted-foreground hover:text-foreground rounded-lg"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="block text-xs text-muted-foreground">
+                        Judul Banner
+                        <input
+                          value={newSlideForm.title}
+                          onChange={(e) =>
+                            setNewSlideForm((prev) => ({ ...prev, title: e.target.value }))
+                          }
+                          placeholder="Misal: Promo Weekend Bento 20% OFF"
+                          className={fieldClass}
+                        />
+                      </label>
+                      <label className="block text-xs text-muted-foreground">
+                        Badge / Tag
+                        <input
+                          value={newSlideForm.badge}
+                          onChange={(e) =>
+                            setNewSlideForm((prev) => ({ ...prev, badge: e.target.value }))
+                          }
+                          placeholder="Misal: SPECIAL / 20% OFF / NEW"
+                          className={fieldClass}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="block text-xs text-muted-foreground">
+                        Subjudul / Keterangan
+                        <input
+                          value={newSlideForm.subtitle}
+                          onChange={(e) =>
+                            setNewSlideForm((prev) => ({ ...prev, subtitle: e.target.value }))
+                          }
+                          placeholder="Misal: Gunakan kode voucher NANAMI20"
+                          className={fieldClass}
+                        />
+                      </label>
+                      <label className="block text-xs text-muted-foreground">
+                        Link Tujuan (Opsional)
+                        <input
+                          value={newSlideForm.link}
+                          onChange={(e) =>
+                            setNewSlideForm((prev) => ({ ...prev, link: e.target.value }))
+                          }
+                          placeholder="/menu atau /vouchers"
+                          className={fieldClass}
+                        />
+                      </label>
+                    </div>
+
+                    {/* Quick Image Pick for New Slide */}
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1.5">
+                        Pilih Foto Banner Slide:
+                      </label>
+                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                        {HERO_PRESETS.map((p) => {
+                          const isSel = (newSlideForm.imageUrl || heroImg) === p.url;
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() =>
+                                setNewSlideForm((prev) => ({ ...prev, imageUrl: p.url }))
+                              }
+                              className={`group relative overflow-hidden rounded-xl border text-left transition ${
+                                isSel
+                                  ? "border-primary ring-2 ring-primary/40"
+                                  : "border-border hover:border-muted-foreground"
+                              }`}
+                            >
+                              <img
+                                src={p.url}
+                                alt={p.name}
+                                className="h-12 w-full object-cover group-hover:scale-105 transition"
+                              />
+                              <div className="bg-background/90 p-1 truncate text-[9px] font-medium">
+                                {p.name.split(" ")[0]}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-2 flex gap-2">
+                        <input
+                          value={newSlideForm.imageUrl}
+                          onChange={(e) =>
+                            setNewSlideForm((prev) => ({ ...prev, imageUrl: e.target.value }))
+                          }
+                          placeholder="Atau masukkan URL gambar (https://...)"
+                          className={fieldClass}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowAddSlideForm(false)}
+                        className="rounded-xl px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSlide: Promo = {
+                            id: uid(),
+                            title: newSlideForm.title.trim() || "Promo Spesial Nanami",
+                            subtitle:
+                              newSlideForm.subtitle.trim() || "Nikmati bento & hidangan lezat",
+                            badge: newSlideForm.badge.trim() || "PROMO",
+                            imageUrl: newSlideForm.imageUrl.trim() || heroImg,
+                            link: newSlideForm.link.trim() || "/menu",
+                            active: true,
+                          };
+                          const nextSlides = [...promos, newSlide];
+                          if (props.onChangePromos) {
+                            props.onChangePromos(nextSlides);
+                          } else {
+                            actionsShadow.savePromo(newSlide);
+                          }
+                          setNewSlideForm({
+                            title: "",
+                            subtitle: "",
+                            badge: "PROMO",
+                            imageUrl: "",
+                            link: "",
+                          });
+                          setShowAddSlideForm(false);
+                          setCarouselPreviewIdx(nextSlides.length - 1);
+                          triggerToast();
+                        }}
+                        className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition"
+                      >
+                        Simpan Slide Baru
+                      </button>
+                    </div>
+                  </div>
                 )}
+
+                {/* Hidden File Input for slide photo uploads */}
+                <input
+                  type="file"
+                  ref={slideFileInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (activeUploadSlideId) {
+                      handleFileUpload(e, (base64) => {
+                        handleUpdateSlide(activeUploadSlideId, { imageUrl: base64 });
+                      });
+                    }
+                  }}
+                />
+
+                {/* Carousel Slide Cards List (Ordered: Slide #1, Slide #2, Slide #3, ...) */}
+                <div className="space-y-4">
+                  {currentHeroSlides.map((slide, idx) => {
+                    const isFirst = idx === 0;
+                    const isLast = idx === currentHeroSlides.length - 1;
+                    const isSlideActive = slide.active !== false;
+                    const slideImg = slide.imageUrl || (idx === 0 ? heroImg : food2);
+
+                    return (
+                      <div
+                        key={slide.id}
+                        className={`overflow-hidden rounded-2xl border transition shadow-xs ${
+                          isSlideActive
+                            ? "border-border bg-card"
+                            : "border-border/50 bg-secondary/15 opacity-70"
+                        }`}
+                      >
+                        {/* Slide Card Header with Order Numbering & Reorder Buttons */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/25 px-4 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                                isFirst
+                                  ? "bg-primary text-primary-foreground shadow-xs"
+                                  : "bg-secondary text-foreground border border-border"
+                              }`}
+                            >
+                              {isFirst ? "🌟 Slide #1 (Banner Utama)" : `Slide #${idx + 1}`}
+                            </span>
+                            <span
+                              className={`rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${
+                                isSlideActive
+                                  ? "bg-success/15 text-success"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {isSlideActive ? "AKTIF" : "DISEMBUNYIKAN"}
+                            </span>
+                          </div>
+
+                          {/* Reorder and Action Buttons */}
+                          <div className="flex items-center gap-1.5">
+                            {/* Move Up (Naikkan Urutan) */}
+                            <button
+                              type="button"
+                              disabled={isFirst}
+                              onClick={() => handleMoveSlide(idx, "up")}
+                              title="Pindahkan ke posisi sebelumnya (Naik)"
+                              className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-30 transition"
+                            >
+                              <ArrowUp className="size-3.5" />
+                              <span className="hidden sm:inline text-[11px]">Naik</span>
+                            </button>
+
+                            {/* Move Down (Turunkan Urutan) */}
+                            <button
+                              type="button"
+                              disabled={isLast}
+                              onClick={() => handleMoveSlide(idx, "down")}
+                              title="Pindahkan ke posisi berikutnya (Turun)"
+                              className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-30 transition"
+                            >
+                              <ArrowDown className="size-3.5" />
+                              <span className="hidden sm:inline text-[11px]">Turun</span>
+                            </button>
+
+                            {/* Toggle Active Switch */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleUpdateSlide(slide.id, { active: !isSlideActive })
+                              }
+                              className={`rounded-lg px-2 py-1 text-xs font-bold transition ${
+                                isSlideActive
+                                  ? "text-primary hover:bg-primary/10"
+                                  : "text-muted-foreground hover:bg-secondary"
+                              }`}
+                            >
+                              {isSlideActive ? "Sembunyikan" : "Aktifkan"}
+                            </button>
+
+                            {/* Delete Slide */}
+                            {currentHeroSlides.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSlide(slide.id)}
+                                title="Hapus slide ini dari carousel"
+                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Slide Card Body */}
+                        <div className="p-4 space-y-4">
+                          {/* Image Selector & Preview */}
+                          <div className="grid gap-4 sm:grid-cols-12">
+                            {/* Slide Thumbnail */}
+                            <div className="sm:col-span-4 space-y-2">
+                              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
+                                Foto Banner Slide
+                              </label>
+                              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-secondary/30 shadow-xs">
+                                <img
+                                  src={slideImg}
+                                  alt={slide.title || `Slide ${idx + 1}`}
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute top-1.5 left-1.5">
+                                  <span className="rounded-full bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-white">
+                                    {slide.badge || "PROMO"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Upload & Gallery Action Buttons */}
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveUploadSlideId(slide.id);
+                                    slideFileInputRef.current?.click();
+                                  }}
+                                  className="flex items-center justify-center gap-1 rounded-xl border border-dashed border-border bg-secondary/30 px-2 py-2 text-[11px] font-bold text-foreground hover:border-primary transition"
+                                >
+                                  <Upload className="size-3" /> Upload
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveGallerySlideId(slide.id)}
+                                  className="flex items-center justify-center gap-1 rounded-xl border border-primary/30 bg-primary/10 px-2 py-2 text-[11px] font-bold text-primary hover:bg-primary/20 transition"
+                                >
+                                  <ImageIcon className="size-3" /> Galeri
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Preset Buttons & Text Configuration */}
+                            <div className="sm:col-span-8 space-y-3">
+                              {/* Quick Preset Selector for this slide */}
+                              <div>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                                  Pilih Cepat Dari Gambar Bawaan:
+                                </label>
+                                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+                                  {HERO_PRESETS.map((p) => {
+                                    const isSelected = slideImg === p.url;
+                                    return (
+                                      <button
+                                        key={p.id}
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateSlide(slide.id, {
+                                            imageUrl: p.url,
+                                            title: slide.title || p.name,
+                                            badge: slide.badge || p.badge,
+                                            subtitle: slide.subtitle || p.subtitle,
+                                          });
+                                          setCarouselPreviewIdx(idx);
+                                        }}
+                                        className={`group relative overflow-hidden rounded-lg border text-left transition ${
+                                          isSelected
+                                            ? "border-primary ring-2 ring-primary/40"
+                                            : "border-border hover:border-muted-foreground"
+                                        }`}
+                                      >
+                                        <img
+                                          src={p.url}
+                                          alt={p.name}
+                                          className="h-9 w-full object-cover group-hover:scale-105 transition"
+                                        />
+                                        <div className="bg-background/90 p-0.5 truncate text-[8px] font-medium leading-none">
+                                          {p.name.split(" ")[0]}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Image URL Input */}
+                              <div>
+                                <label className="text-[11px] text-muted-foreground block mb-0.5">
+                                  Atau Link URL Gambar
+                                </label>
+                                <input
+                                  type="url"
+                                  placeholder="https://example.com/slide-banner.jpg"
+                                  value={slide.imageUrl || ""}
+                                  onChange={(e) =>
+                                    handleUpdateSlide(slide.id, { imageUrl: e.target.value })
+                                  }
+                                  className={fieldClass}
+                                />
+                              </div>
+
+                              {/* Title, Subtitle, Badge, Link Inputs */}
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                <label className="block text-[11px] text-muted-foreground">
+                                  Judul Slide
+                                  <input
+                                    value={slide.title || ""}
+                                    onChange={(e) =>
+                                      handleUpdateSlide(slide.id, { title: e.target.value })
+                                    }
+                                    placeholder="Misal: 20% OFF All Bento"
+                                    className={fieldClass}
+                                  />
+                                </label>
+                                <label className="block text-[11px] text-muted-foreground">
+                                  Tag / Badge
+                                  <input
+                                    value={slide.badge || ""}
+                                    onChange={(e) =>
+                                      handleUpdateSlide(slide.id, { badge: e.target.value })
+                                    }
+                                    placeholder="Misal: SPECIAL / 20% OFF"
+                                    className={fieldClass}
+                                  />
+                                </label>
+                              </div>
+
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                <label className="block text-[11px] text-muted-foreground">
+                                  Subjudul
+                                  <input
+                                    value={slide.subtitle || ""}
+                                    onChange={(e) =>
+                                      handleUpdateSlide(slide.id, { subtitle: e.target.value })
+                                    }
+                                    placeholder="Misal: Gunakan kode promo NANAMI20"
+                                    className={fieldClass}
+                                  />
+                                </label>
+                                <label className="block text-[11px] text-muted-foreground">
+                                  Link Tujuan (Saat Diklik)
+                                  <input
+                                    value={slide.link || ""}
+                                    onChange={(e) =>
+                                      handleUpdateSlide(slide.id, { link: e.target.value })
+                                    }
+                                    placeholder="/menu atau /vouchers"
+                                    className={fieldClass}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </SectionCard>
 
+            {/* Headline Slogan & Store Messaging Card */}
             <SectionCard
-              title="Headline & Call To Action (CTA)"
-              description="Primary message greeting customers on home screen."
+              title="Teks Tagline & Headline Header"
+              description="Pesan sambutan dan teks display restoran."
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block text-xs text-muted-foreground">
-                  Headline Line 1
+                  Headline Baris 1
                   <input
                     value={cms.heroTitleLine1}
                     onChange={(e) => {
@@ -742,7 +1250,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                   />
                 </label>
                 <label className="block text-xs text-muted-foreground">
-                  Headline Line 2
+                  Headline Baris 2
                   <input
                     value={cms.heroTitleLine2}
                     onChange={(e) => {
@@ -757,7 +1265,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
 
               <div className="grid gap-4 pt-3 sm:grid-cols-2">
                 <label className="block text-xs text-muted-foreground">
-                  CTA Button Text
+                  Tombol Aksi (CTA)
                   <input
                     value={cms.heroCtaText}
                     onChange={(e) => {
@@ -768,9 +1276,8 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                     className={fieldClass}
                   />
                 </label>
-
                 <label className="block text-xs text-muted-foreground">
-                  Full Slogan
+                  Slogan Lengkap
                   <input
                     value={cms.heroSlogan}
                     onChange={(e) => {
@@ -785,47 +1292,273 @@ export function CmsPanel(props: CmsPanelProps = {}) {
             </SectionCard>
           </div>
 
-          {/* Hero Live Preview */}
+          {/* Right Column: Full Interactive Live Carousel Preview */}
           <div className="space-y-4 lg:col-span-5">
-            <div className="sticky top-24 rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <div className="sticky top-20 rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4">
+              {/* Preview Header & Controls */}
               <div className="flex items-center justify-between border-b border-border pb-3">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                  <Eye className="size-4 text-primary" /> Live Preview Hero Card
-                </span>
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                  Customer View
-                </span>
-              </div>
-
-              <div className="mt-4 overflow-hidden rounded-2xl border border-border">
-                <div className="relative h-48 w-full">
-                  <img
-                    src={cms.heroImage || heroImg}
-                    alt="Hero banner preview"
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-transparent" />
-                  <div className="absolute inset-y-0 left-0 flex w-3/4 flex-col justify-center p-4">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                      SPECIAL RECOMMENDATION
-                    </span>
-                    <h3 className="text-xl font-extrabold leading-tight text-primary">
-                      {cms.heroTitleLine1}
-                      <br />
-                      {cms.heroTitleLine2}
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">{cms.tagline}</p>
-                    <div className="mt-3">
-                      <span className="inline-block rounded-full bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-sm">
-                        {cms.heroCtaText || "Order Now"} &rarr;
-                      </span>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                  <Eye className="size-4 text-primary" />
+                  Live Preview Carousel
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setCarouselAutoPlay((v) => !v)}
+                    title={carouselAutoPlay ? "Jeda putar otomatis" : "Mulai putar otomatis"}
+                    className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
+                      carouselAutoPlay
+                        ? "bg-primary/20 text-primary border border-primary/30"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {carouselAutoPlay ? (
+                      <Pause className="size-2.5" />
+                    ) : (
+                      <Play className="size-2.5" />
+                    )}
+                    {carouselAutoPlay ? "Auto-Slide ON" : "Paused"}
+                  </button>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    1:1 Sync
+                  </span>
                 </div>
               </div>
+
+              {/* View Mode Toggle: Customer App Header View vs Focused Banner View */}
+              <div className="flex rounded-xl bg-secondary/40 p-1 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setCarouselViewMode("app")}
+                  className={`flex-1 rounded-lg py-1.5 text-center text-[11px] font-bold transition ${
+                    carouselViewMode === "app"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  📱 Tampilan Beranda Pelanggan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCarouselViewMode("banner")}
+                  className={`flex-1 rounded-lg py-1.5 text-center text-[11px] font-bold transition ${
+                    carouselViewMode === "banner"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  🖼️ Tampilan Fokus Banner
+                </button>
+              </div>
+
+              {/* Live Preview Container */}
+              {(() => {
+                const activeSlides = currentHeroSlides.filter((s) => s.active !== false);
+                const displaySlides = activeSlides.length > 0 ? activeSlides : currentHeroSlides;
+                const safeIdx = carouselPreviewIdx % displaySlides.length;
+                const currentSlide = displaySlides[safeIdx] || displaySlides[0];
+
+                return (
+                  <div className="space-y-3">
+                    {/* Simulated Mobile Device Window */}
+                    <div className="overflow-hidden rounded-2xl border border-border/80 bg-background shadow-md">
+                      {carouselViewMode === "app" && (
+                        <>
+                          {/* Mock Mobile Status & Header */}
+                          <div className="border-b border-border/40 bg-card/60 px-3 py-1.5 flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span className="font-semibold">
+                              {settings.storeName || "Nanami Kitchen"}
+                            </span>
+                            <span className="rounded-full bg-success/20 text-success px-2 py-0.5 text-[9px] font-bold">
+                              Open Now
+                            </span>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Interactive Carousel Banner Stage */}
+                      <div className="group relative h-56 sm:h-64 w-full overflow-hidden bg-muted">
+                        {displaySlides.map((slide, i) => {
+                          const isShowing = i === safeIdx;
+                          const img = slide.imageUrl || (i === 0 ? heroImg : food2);
+
+                          return (
+                            <div
+                              key={slide.id || i}
+                              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                                isShowing ? "opacity-100 z-10" : "opacity-0 pointer-events-none z-0"
+                              }`}
+                            >
+                              <img
+                                src={img}
+                                alt={slide.title || `Slide ${i + 1}`}
+                                className="h-full w-full object-cover transition-transform duration-700"
+                              />
+
+                              {/* Subtle bottom gradient & overlay details */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pointer-events-none" />
+
+                              {/* Slide Information Overlay */}
+                              <div className="absolute bottom-6 left-3 right-3 text-white pointer-events-none">
+                                <span className="inline-block rounded-full bg-primary/90 text-primary-foreground px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider mb-1">
+                                  {slide.badge || "SPECIAL PROMO"}
+                                </span>
+                                <h4 className="text-sm font-extrabold line-clamp-1 leading-tight drop-shadow-xs">
+                                  {slide.title || "Signature Bento Special"}
+                                </h4>
+                                {slide.subtitle && (
+                                  <p className="text-[11px] text-white/85 line-clamp-1 drop-shadow-xs mt-0.5">
+                                    {slide.subtitle}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Prev / Next Navigation Arrows */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCarouselPreviewIdx((prev) =>
+                              prev === 0 ? displaySlides.length - 1 : prev - 1,
+                            )
+                          }
+                          aria-label="Slide sebelumnya"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex size-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs hover:bg-black/70 transition"
+                        >
+                          <ChevronLeft className="size-4" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCarouselPreviewIdx((prev) => (prev + 1) % displaySlides.length)
+                          }
+                          aria-label="Slide berikutnya"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex size-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs hover:bg-black/70 transition"
+                        >
+                          <ChevronRight className="size-4" />
+                        </button>
+
+                        {/* Top-right Slide Number Pill */}
+                        <div className="absolute top-2 right-2 z-20 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
+                          {safeIdx + 1} / {displaySlides.length}
+                        </div>
+
+                        {/* Interactive Clickable Bottom Indicator Dots */}
+                        <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center gap-1.5">
+                          <div className="flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 backdrop-blur-xs">
+                            {displaySlides.map((s, i) => (
+                              <button
+                                key={s.id || i}
+                                type="button"
+                                onClick={() => setCarouselPreviewIdx(i)}
+                                aria-label={`Pilih slide ${i + 1}`}
+                                className={`h-1.5 rounded-full transition-all duration-300 ${
+                                  i === safeIdx
+                                    ? "w-5 bg-white"
+                                    : "w-1.5 bg-white/50 hover:bg-white/80"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {carouselViewMode === "app" && (
+                        <div className="border-t border-border/40 bg-card/40 p-2.5">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-foreground">Menu Rekomendasi</span>
+                            <span className="text-muted-foreground text-[10px]">Must Try!</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Active Slide Breakdown Detail Card */}
+                    {currentSlide && (
+                      <div className="rounded-xl border border-border bg-secondary/20 p-3 text-xs space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                            Info Slide Aktif Saat Ini:
+                          </span>
+                          <span className="font-bold text-foreground">
+                            Slide #{safeIdx + 1} ({currentSlide.badge || "PROMO"})
+                          </span>
+                        </div>
+                        <p className="font-semibold text-foreground line-clamp-1">
+                          {currentSlide.title || "(Tanpa Judul)"}
+                        </p>
+                        {currentSlide.subtitle && (
+                          <p className="text-muted-foreground text-[11px] line-clamp-1">
+                            {currentSlide.subtitle}
+                          </p>
+                        )}
+                        <div className="pt-1 flex flex-wrap gap-1">
+                          {displaySlides.map((s, idx) => (
+                            <button
+                              key={s.id || idx}
+                              type="button"
+                              onClick={() => setCarouselPreviewIdx(idx)}
+                              className={`rounded-lg px-2 py-0.5 text-[10px] font-bold transition ${
+                                idx === safeIdx
+                                  ? "bg-primary text-primary-foreground"
+                                  : "border border-border bg-card text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              Slide {idx + 1}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                💡 <em>Tips:</em> Gunakan tombol <strong>Naik (↑)</strong> /{" "}
+                <strong>Turun (↓)</strong> pada kartu slide di sebelah kiri untuk mengubah urutan
+                tampil banner di carousel beranda pelanggan secara instan.
+              </p>
             </div>
           </div>
 
+          {/* Media Gallery Picker Modal for specific slide */}
+          {activeGallerySlideId && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
+              <div className="relative max-w-4xl w-full max-h-[90vh] bg-background rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div>
+                    <h3 className="font-bold">Media Library</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                      Pilih Foto Untuk Slide Carousel
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveGallerySlideId(null)}
+                    className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+                  >
+                    <X className="size-5" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4">
+                  <MediaGallery
+                    onSelect={(url) => {
+                      if (activeGallerySlideId) {
+                        handleUpdateSlide(activeGallerySlideId, { imageUrl: url });
+                      }
+                      setActiveGallerySlideId(null);
+                      triggerToast();
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Fallback Single Hero Gallery Modal */}
           {showHeroGallery && (
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
               <div className="relative max-w-4xl w-full max-h-[90vh] bg-background rounded-3xl overflow-hidden shadow-2xl flex flex-col">
@@ -848,6 +1581,9 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                     selectedUrl={cms.heroImage}
                     onSelect={(url) => {
                       actionsShadow.updateCms({ heroImage: url });
+                      if (promos[0]) {
+                        handleUpdateSlide(promos[0].id, { imageUrl: url });
+                      }
                       setShowHeroGallery(false);
                       triggerToast();
                     }}
@@ -1160,99 +1896,62 @@ export function CmsPanel(props: CmsPanelProps = {}) {
         <div className="grid gap-6 lg:grid-cols-12">
           <div className="space-y-6 lg:col-span-7">
             <SectionCard
-              title="Welcome Splash Screen Config"
-              description="Opening splash animation when customers first launch the app."
+              title="Foto Full Welcome / Splash Screen"
+              description="Gambar pembuka full-screen saat pelanggan pertama kali membuka website/aplikasi."
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/30 p-3.5">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Enable Welcome Screen</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      Aktifkan Welcome Splash Screen
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      Show animated splash screen logo on session startup.
+                      Tampilkan gambar pembuka full-screen saat sesi pertama kali dimuat.
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => {
                       actionsShadow.updateCmsWelcome({ enabled: !cms.welcomeScreen.enabled });
                       triggerToast();
                     }}
                     className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
                       cms.welcomeScreen.enabled
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {cms.welcomeScreen.enabled ? "ACTIVE" : "INACTIVE"}
+                    {cms.welcomeScreen.enabled ? "AKTIF" : "NONAKTIF"}
                   </button>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block text-xs text-muted-foreground">
-                    Splash Title
-                    <input
-                      value={cms.welcomeScreen.title}
-                      onChange={(e) => {
-                        actionsShadow.updateCmsWelcome({ title: e.target.value });
-                        triggerToast();
-                      }}
-                      placeholder="nanami"
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label className="block text-xs text-muted-foreground">
-                    Splash Subtitle
-                    <input
-                      value={cms.welcomeScreen.subtitle}
-                      onChange={(e) => {
-                        actionsShadow.updateCmsWelcome({ subtitle: e.target.value });
-                        triggerToast();
-                      }}
-                      placeholder="kitchen"
-                      className={fieldClass}
-                    />
-                  </label>
-                </div>
-
                 <div>
                   <label className="block text-xs text-muted-foreground">
-                    Splash Slogan Text
-                    <textarea
-                      rows={2}
-                      value={cms.welcomeScreen.slogan}
-                      onChange={(e) => {
-                        actionsShadow.updateCmsWelcome({ slogan: e.target.value });
-                        triggerToast();
-                      }}
-                      placeholder="Good Food.&#10;Made with Love"
-                      className={fieldClass}
-                    />
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block text-xs text-muted-foreground">
-                    Auto Duration (Seconds)
+                    Durasi Tampil Otomatis (Detik)
                     <input
                       type="number"
                       step="0.5"
-                      min="1"
-                      max="6"
+                      min="0.8"
+                      max="5"
                       value={cms.welcomeScreen.durationSec}
                       onChange={(e) => {
                         actionsShadow.updateCmsWelcome({
-                          durationSec: parseFloat(e.target.value) || 2.6,
+                          durationSec: parseFloat(e.target.value) || 1.5,
                         });
                         triggerToast();
                       }}
                       className={fieldClass}
                     />
+                    <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                      Pelanggan juga dapat mengetuk layar kapan saja untuk langsung masuk ke menu.
+                    </span>
                   </label>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-border">
+                <div className="space-y-3 pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-foreground">
-                      Gambar Pembuka / Splash Image (Terpisah dari Hero Banner)
+                      Pilihan Gambar Splash Bawaan (Presets)
                     </label>
                     {cms.welcomeScreen.imageUrl && (
                       <button
@@ -1263,14 +1962,43 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                         }}
                         className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition"
                       >
-                        <Trash2 className="size-3.5" /> Hapus / Reset Gambar
+                        <Trash2 className="size-3.5" /> Reset Gambar
                       </button>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Gambar Welcome Screen ini berdiri sendiri dan tidak terikat dengan Hero Banner /
-                    Slider Banner.
-                  </p>
+
+                  {/* Preset splash images */}
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {HERO_PRESETS.map((p) => {
+                      const isSelected = (cms.welcomeScreen.imageUrl || heroImg) === p.url;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            actionsShadow.updateCmsWelcome({ imageUrl: p.url });
+                            triggerToast();
+                          }}
+                          className={`group relative overflow-hidden rounded-xl border text-left transition ${
+                            isSelected
+                              ? "border-primary ring-2 ring-primary/40"
+                              : "border-border hover:border-muted-foreground"
+                          }`}
+                        >
+                          <img
+                            src={p.url}
+                            alt={p.name}
+                            className="h-20 w-full object-cover transition group-hover:scale-105"
+                          />
+                          <div className="bg-background/90 p-1.5 flex items-center justify-between">
+                            <p className="truncate text-[11px] font-medium">{p.name}</p>
+                            {isSelected && <Check className="size-3 text-primary shrink-0" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <input
                     type="file"
                     ref={welcomeInputRef}
@@ -1282,45 +2010,64 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       )
                     }
                   />
+
+                  {/* Upload & Gallery Controls */}
                   <div className="grid gap-3 pt-2 sm:grid-cols-3">
-                    <button
-                      type="button"
-                      onClick={() => welcomeInputRef.current?.click()}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary/30 px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:border-primary hover:text-foreground"
-                    >
-                      <Upload className="size-4" /> Upload Dari Perangkat
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowWelcomeGallery(true)}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/10"
-                    >
-                      <ImageIcon className="size-4" /> Pilih dari Galeri
-                    </button>
-                    <input
-                      type="url"
-                      placeholder="Atau URL gambar (https://...)"
-                      value={cms.welcomeScreen.imageUrl || ""}
-                      onChange={(e) => {
-                        actionsShadow.updateCmsWelcome({ imageUrl: e.target.value });
-                        triggerToast();
-                      }}
-                      className={fieldClass}
-                    />
+                    <div>
+                      <label className="text-xs font-semibold text-foreground">
+                        Upload Foto Full HD
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => welcomeInputRef.current?.click()}
+                        className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary/30 px-3 py-2.5 text-xs font-semibold text-muted-foreground transition hover:border-primary hover:text-foreground"
+                      >
+                        <Upload className="size-4" /> Upload Dari Perangkat
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-foreground">Galeri Media</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowWelcomeGallery(true)}
+                        className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                      >
+                        <ImageIcon className="size-4" /> Pilih dari Galeri
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-foreground">
+                        Atau Link URL Gambar
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://example.com/splash.jpg"
+                        value={cms.welcomeScreen.imageUrl || ""}
+                        onChange={(e) => {
+                          actionsShadow.updateCmsWelcome({ imageUrl: e.target.value });
+                          triggerToast();
+                        }}
+                        className={fieldClass}
+                      />
+                    </div>
                   </div>
 
                   {cms.welcomeScreen.imageUrl && (
                     <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-2.5">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <img
                           src={cms.welcomeScreen.imageUrl}
                           alt="Splash preview"
-                          className="size-10 rounded-lg object-cover border"
+                          className="size-12 rounded-lg object-cover border"
                         />
                         <div>
-                          <p className="text-xs font-bold">Gambar Splash Kustom</p>
+                          <p className="text-xs font-bold text-foreground">
+                            Foto Splash Kustom Aktif
+                          </p>
                           <p className="text-[10px] text-muted-foreground">
-                            Aktif ditampilkan saat splash pembuka.
+                            Ditampilkan full-screen resolusi tajam di semua ukuran layar.
                           </p>
                         </div>
                       </div>
@@ -1330,7 +2077,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                           actionsShadow.updateCmsWelcome({ imageUrl: "" });
                           triggerToast();
                         }}
-                        className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
+                        className="rounded-lg p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
                         title="Hapus gambar"
                       >
                         <Trash2 className="size-4" />
@@ -1373,45 +2120,39 @@ export function CmsPanel(props: CmsPanelProps = {}) {
             </div>
           )}
 
-          {/* Welcome Screen Mockup */}
+          {/* Full Screen Live Preview Mockup */}
           <div className="space-y-4 lg:col-span-5">
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <div className="sticky top-20 rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                  <Eye className="size-4 text-primary" /> Preview Welcome Splash
+                  <Eye className="size-4 text-primary" /> Live Preview Full Splash Screen
                 </span>
-                <span className="text-[10px] text-muted-foreground">
-                  {cms.welcomeScreen.durationSec} Seconds
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                  {cms.welcomeScreen.durationSec}s Durasi
                 </span>
               </div>
 
-              {/* Realistic Splash Preview Box */}
-              <div className="mt-4 flex flex-col items-center justify-between overflow-hidden rounded-2xl bg-[oklch(0.16_0.01_60)] px-6 py-8 text-center text-white shadow-md">
-                <div className="flex flex-col items-center">
-                  <img
-                    src={cms.logoUrl || defaultLogo}
-                    alt="Logo preview"
-                    className="size-16 rounded-xl object-contain"
-                  />
-                  <h3 className="mt-2 font-display text-2xl italic tracking-tight text-[oklch(0.82_0.12_85)]">
-                    {cms.welcomeScreen.title || "nanami"}
-                  </h3>
-                  <p className="text-xs font-medium uppercase tracking-[0.45em] text-[oklch(0.82_0.12_85)]">
-                    {cms.welcomeScreen.subtitle || "kitchen"}
-                  </p>
-                  <p className="mt-4 whitespace-pre-line text-xs text-[oklch(0.92_0.01_80)]">
-                    {cms.welcomeScreen.slogan || "Good Food.\nMade with Love"}
-                  </p>
-                </div>
+              {/* Realistic Full Viewport Splash Simulation */}
+              <div className="relative aspect-[9/16] sm:max-h-[500px] w-full overflow-hidden rounded-2xl bg-black shadow-lg border border-border/80">
+                <img
+                  src={cms.welcomeScreen.imageUrl || heroImg}
+                  alt="Full Welcome Splash Preview"
+                  className="h-full w-full object-cover object-center"
+                />
 
-                <div className="mt-6 w-full overflow-hidden rounded-xl">
-                  <img
-                    src={cms.welcomeScreen.imageUrl || heroImg}
-                    alt="Welcome Splash Dish"
-                    className="h-24 w-full object-cover"
-                  />
+                {/* Simulated skip hint */}
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
+                  <span className="rounded-full bg-black/60 px-3 py-1 text-[10px] font-medium text-white/90 backdrop-blur-xs">
+                    Ketuk layar untuk langsung masuk &rarr;
+                  </span>
                 </div>
               </div>
+
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                ✨ <strong>Responsif & Tajam:</strong> Gambar splash akan otomatis mengisi penuh
+                layar (full-bleed) di smartphone, tablet, maupun layar desktop tanpa pecah atau
+                terpotong teks.
+              </p>
             </div>
           </div>
         </div>

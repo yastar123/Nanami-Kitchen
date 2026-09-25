@@ -18,30 +18,28 @@ export function PromoCarousel() {
   const bannerList = (() => {
     const list: Array<{ id: string; imageUrl: string; link: string | null; alt: string }> = [];
 
-    // If hero banner is enabled and has a custom image, make it the primary slide
-    if (cms?.heroActive !== false && cms?.heroImage) {
+    // If active promos exist, they represent the carousel slides in their exact configured sequence
+    if (promos.length > 0) {
+      promos.forEach((p, idx) => {
+        list.push({
+          id: p.id,
+          imageUrl: p.imageUrl
+            ? resolveMenuImage(p.imageUrl, defaultHeroImg)
+            : fallbackBanners[idx % fallbackBanners.length] || defaultHeroImg,
+          link: p.link || null,
+          alt: p.title || `Nanami Kitchen banner ${idx + 1}`,
+        });
+      });
+    } else if (cms?.heroImage) {
+      // If no promos, use custom hero image if provided
       list.push({
         id: "hero-custom",
         imageUrl: resolveMenuImage(cms.heroImage, defaultHeroImg),
         link: null,
         alt: cms?.heroTitleLine1 || "Nanami Kitchen Hero Banner",
       });
-    }
-
-    // Add active promo slides
-    promos.forEach((p, idx) => {
-      list.push({
-        id: p.id,
-        imageUrl: p.imageUrl
-          ? resolveMenuImage(p.imageUrl, defaultHeroImg)
-          : fallbackBanners[idx % fallbackBanners.length],
-        link: p.link || null,
-        alt: p.title || `Nanami Kitchen promo banner ${idx + 1}`,
-      });
-    });
-
-    // If no custom hero image and no promos, show default hero banner if hero is active
-    if (list.length === 0 && cms?.heroActive !== false) {
+    } else if (cms?.heroActive !== false) {
+      // Default signature fallback banner
       list.push({
         id: "hero-default",
         imageUrl: defaultHeroImg,
@@ -52,6 +50,12 @@ export function PromoCarousel() {
 
     return list;
   })();
+
+  useEffect(() => {
+    if (index >= bannerList.length && bannerList.length > 0) {
+      setIndex(0);
+    }
+  }, [bannerList.length, index]);
 
   useEffect(() => {
     if (bannerList.length < 2) return;

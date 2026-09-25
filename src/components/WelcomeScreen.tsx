@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
-import defaultLogo from "@/assets/nanami-logo.png";
 import defaultHeroImg from "@/assets/hero.jpg";
-import { useStore } from "@/lib/store";
+import { useStore, resolveMenuImage } from "@/lib/store";
 
 export function WelcomeScreen({ onDone }: { onDone: () => void }) {
   const [leaving, setLeaving] = useState(false);
   const cms = useStore((s) => s.cms);
 
-  const logoSrc = cms?.logoUrl || defaultLogo;
-  const heroSrc = cms?.welcomeScreen?.imageUrl || defaultHeroImg;
-  const title = cms?.welcomeScreen?.title || cms?.brandName || "nanami";
-  const subtitle = cms?.welcomeScreen?.subtitle || cms?.brandSuffix || "kitchen";
-  const slogan = cms?.welcomeScreen?.slogan || "Good Food.\nMade with Love";
+  const splashSrc = cms?.welcomeScreen?.imageUrl
+    ? resolveMenuImage(cms.welcomeScreen.imageUrl, defaultHeroImg)
+    : defaultHeroImg;
 
   useEffect(() => {
     // Measure how long the user has ALREADY been seeing the splash screen since navigation started
@@ -22,13 +19,12 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
         : Date.now());
     const elapsed = Math.max(0, Date.now() - navStart);
 
-    // Target TOTAL splash display time: capped strictly between 600ms and 1200ms
-    // This guarantees total time from page request to home screen is always under 1.5s - 1.8s
-    const configuredTarget = (cms?.welcomeScreen?.durationSec ?? 1.0) * 1000;
-    const targetTotal = Math.min(1200, Math.max(600, configuredTarget));
+    // Target TOTAL splash display time: configured duration (default ~1.5s, max 4s)
+    const configuredTarget = (cms?.welcomeScreen?.durationSec ?? 1.5) * 1000;
+    const targetTotal = Math.min(4000, Math.max(800, configuredTarget));
 
     // Calculate remaining duration before initiating smooth exit
-    const remainingMs = Math.max(150, targetTotal - elapsed);
+    const remainingMs = Math.max(200, targetTotal - elapsed);
 
     const t = setTimeout(() => setLeaving(true), remainingMs);
     return () => clearTimeout(t);
@@ -36,7 +32,7 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     if (!leaving) return;
-    const t = setTimeout(onDone, 200);
+    const t = setTimeout(onDone, 300);
     return () => clearTimeout(t);
   }, [leaving, onDone]);
 
@@ -46,37 +42,24 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
       onClick={() => setLeaving(true)}
       role="button"
       tabIndex={0}
-      aria-label="Welcome screen (click to continue)"
-      className={`fixed inset-0 z-[100] flex cursor-pointer select-none flex-col items-center justify-between overflow-hidden bg-[oklch(0.16_0.01_60)] transition-opacity duration-200 ${
-        leaving ? "pointer-events-none opacity-0" : "opacity-100"
+      aria-label="Welcome splash screen (tap anywhere to skip)"
+      className={`fixed inset-0 z-[100] flex h-[100dvh] w-screen cursor-pointer select-none items-center justify-center overflow-hidden bg-black transition-opacity duration-300 ${
+        leaving ? "pointer-events-none opacity-0" : "opacity-100 animate-in fade-in duration-300"
       }`}
     >
-      <div className="flex flex-1 flex-col items-center justify-center px-8 pt-16 text-center">
-        <img
-          src={logoSrc}
-          alt="Nanami Kitchen logo"
-          width={816}
-          height={816}
-          className="h-28 w-28 rounded-2xl object-contain animate-in fade-in zoom-in-95 duration-700"
-        />
-        <h1 className="mt-4 font-display text-5xl italic tracking-tight text-[oklch(0.82_0.12_85)]">
-          {title}
-        </h1>
-        <p className="mt-1 text-xl font-medium uppercase tracking-[0.45em] text-[oklch(0.82_0.12_85)]">
-          {subtitle}
-        </p>
-        <p className="mt-8 whitespace-pre-line text-base leading-relaxed text-[oklch(0.92_0.01_80)]">
-          {slogan}
-        </p>
-      </div>
+      <img
+        src={splashSrc}
+        alt="Nanami Kitchen Welcome Splash"
+        loading="eager"
+        decoding="sync"
+        className="h-full w-full object-cover object-center pointer-events-none select-none"
+      />
 
-      <div className="relative h-[42vh] w-full">
-        <img
-          src={heroSrc}
-          alt="Signature bowl from Nanami Kitchen"
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.16_0.01_60)] via-transparent to-transparent" />
+      {/* Subtle bottom skip hint */}
+      <div className="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none z-10 px-4">
+        <span className="rounded-full bg-black/60 px-4 py-1.5 text-xs font-medium text-white/90 backdrop-blur-md shadow-lg border border-white/10">
+          Ketuk layar untuk langsung masuk &rarr;
+        </span>
       </div>
     </div>
   );

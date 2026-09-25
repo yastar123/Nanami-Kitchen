@@ -690,6 +690,10 @@ export const actions = {
     }));
     savePromoDb({ data: p }).catch(console.error);
   },
+  reorderPromos(newPromos: Promo[]) {
+    set((s) => ({ ...s, promos: newPromos }));
+    newPromos.forEach((p) => savePromoDb({ data: p }).catch(console.error));
+  },
   deletePromo(id: string) {
     set((s) => ({ ...s, promos: s.promos.filter((p) => p.id !== id) }));
     deletePromoDb({ data: id }).catch(console.error);
