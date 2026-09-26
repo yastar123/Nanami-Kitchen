@@ -126,8 +126,8 @@ export const seedAccounts = [
     name: "Nanami Owner",
     phone: "0834567890",
     role: "owner",
-    address: "HQ Nanami Kitchen, Jakarta",
-    addresses: ["HQ Nanami Kitchen, Jakarta"],
+    address: "HQ Nanami Kitchen, Rosebank, Johannesburg",
+    addresses: ["HQ Nanami Kitchen, Rosebank, Johannesburg"],
     points: 1500,
   },
   {
@@ -137,8 +137,8 @@ export const seedAccounts = [
     name: "Kitchen Admin",
     phone: "0823456789",
     role: "admin",
-    address: "Kitchen 1, Nanami Kitchen",
-    addresses: ["Kitchen 1, Nanami Kitchen"],
+    address: "Kitchen 1, Nanami Kitchen, Johannesburg",
+    addresses: ["Kitchen 1, Nanami Kitchen, Johannesburg"],
     points: 120,
   },
   {
@@ -159,8 +159,8 @@ export const seedAccounts = [
     name: "Customer Nanami",
     phone: "0812345678",
     role: "user",
-    address: "Jl. Sudirman No. 10, Jakarta",
-    addresses: ["Jl. Sudirman No. 10, Jakarta"],
+    address: "10 Oxford Road, Rosebank, Johannesburg",
+    addresses: ["10 Oxford Road, Rosebank, Johannesburg"],
     points: 350,
   },
   {

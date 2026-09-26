@@ -58,7 +58,7 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
       {/* Subtle bottom skip hint */}
       <div className="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none z-10 px-4">
         <span className="rounded-full bg-black/60 px-4 py-1.5 text-xs font-medium text-white/90 backdrop-blur-md shadow-lg border border-white/10">
-          Ketuk layar untuk langsung masuk &rarr;
+          Tap anywhere to continue &rarr;
         </span>
       </div>
     </div>

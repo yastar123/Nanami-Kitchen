@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Package,
   Phone,
-  Printer,
   RotateCcw,
   Search,
   ShoppingBag,
@@ -32,7 +31,6 @@ import {
   type Order,
   type OrderStatus,
 } from "@/lib/store";
-import { printReceipt } from "@/lib/receipt";
 import { StatCard } from "./DashboardShell";
 import { DailyOrdersPanel } from "./DailyOrdersPanel";
 
@@ -101,7 +99,6 @@ export function OrderManagementPanel() {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "highest">("newest");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [viewMode, setViewMode] = useState<"pipeline" | "recap">("pipeline");
-  const [autoPrintCooking, setAutoPrintCooking] = useState(true);
 
   // Status Counts
   const counts = useMemo(() => {
@@ -196,7 +193,6 @@ export function OrderManagementPanel() {
   }, [orders, activeTab, typeFilter, dateFilter, searchQuery, sortOrder]);
 
   function handleStatusChange(orderId: string, newStatus: OrderStatus) {
-    const targetOrder = orders.find((o) => o.id === orderId);
     actions.setOrderStatus(orderId, newStatus);
     if (selectedOrder && selectedOrder.id === orderId) {
       setSelectedOrder((prev) =>
@@ -204,11 +200,6 @@ export function OrderManagementPanel() {
           ? { ...prev, status: newStatus, paid: prev.paid || newStatus !== "Pending Payment" }
           : null,
       );
-    }
-    if (newStatus === "Cooking" && autoPrintCooking && targetOrder) {
-      setTimeout(() => {
-        printReceipt({ ...targetOrder, status: newStatus, paid: true });
-      }, 250);
     }
   }
 
@@ -266,19 +257,6 @@ export function OrderManagementPanel() {
             <span>7-Day Sales Recap</span>
           </button>
         </div>
-
-        <button
-          onClick={() => setAutoPrintCooking((v) => !v)}
-          className={`flex items-center gap-2 rounded-2xl border px-3.5 py-1.5 text-xs font-semibold transition ${
-            autoPrintCooking
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-              : "border-border bg-secondary/50 text-muted-foreground"
-          }`}
-          title="Auto-trigger Kitchen Thermal Printer receipt when order moves to Cooking status"
-        >
-          <Printer className="size-3.5" />
-          <span>Thermal Auto-Print: {autoPrintCooking ? "ON" : "OFF"}</span>
-        </button>
       </div>
 
       {viewMode === "recap" ? (
@@ -719,15 +697,6 @@ export function OrderManagementPanel() {
                               )}
 
                               <button
-                                onClick={() => printReceipt(order)}
-                                title="Print Receipt"
-                                aria-label={`Print Receipt ${order.code}`}
-                                className="rounded-xl border border-border bg-secondary/40 p-2 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
-                              >
-                                <Printer className="size-3.5" />
-                              </button>
-
-                              <button
                                 onClick={() => setSelectedOrder(order)}
                                 title="View Order Details"
                                 aria-label={`View Details for ${order.code}`}
@@ -812,12 +781,6 @@ export function OrderManagementPanel() {
                             className="flex items-center gap-1 rounded-xl border border-border bg-secondary/40 px-3 py-1.5 text-xs font-semibold text-foreground"
                           >
                             <Eye className="size-3" /> Details
-                          </button>
-                          <button
-                            onClick={() => printReceipt(order)}
-                            className="flex items-center gap-1 rounded-xl border border-border bg-secondary/40 px-3 py-1.5 text-xs font-semibold text-foreground"
-                          >
-                            <Printer className="size-3" /> Print
                           </button>
                         </div>
 
@@ -1039,12 +1002,6 @@ export function OrderManagementPanel() {
 
             {/* Actions */}
             <div className="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">
-              <button
-                onClick={() => printReceipt(selectedOrder)}
-                className="flex items-center gap-1.5 rounded-xl border border-border bg-secondary/40 px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary"
-              >
-                <Printer className="size-3.5" /> Print Receipt
-              </button>
               <button
                 onClick={() => setSelectedOrder(null)}
                 className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"

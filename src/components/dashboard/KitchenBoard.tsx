@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { ArrowRight, Clock, Printer, Utensils, X } from "lucide-react";
+import { ArrowRight, Clock, Utensils, X } from "lucide-react";
 import { actions, rupiah, useStore, type Order, type OrderStatus } from "@/lib/store";
-import { printReceipt } from "@/lib/receipt";
 
 type Stage = {
   key: string;
@@ -96,12 +95,6 @@ function OrderCard({ order, stage }: { order: Order; stage: Stage }) {
             {stage.next.label} <ArrowRight className="size-3.5" />
           </button>
         )}
-        <button
-          onClick={() => printReceipt(order)}
-          className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary"
-        >
-          <Printer className="size-3.5" /> Receipt
-        </button>
         {stage.key !== "done" && (
           <button
             onClick={() => actions.setOrderStatus(order.id, "Cancelled")}

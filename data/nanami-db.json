@@ -367,6 +367,141 @@
   ],
   "orders": [
     {
+      "id": "ord-audit-1790388786262",
+      "code": "NK-AUDIT-2176",
+      "createdAt": "2026-09-26T02:13:06.262Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
+      "id": "ord-test-1790388743436",
+      "code": "NK-4064",
+      "createdAt": 1790388743436,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek"
+      }
+    },
+    {
+      "id": "ord-audit-1790318704464",
+      "code": "NK-AUDIT-8311",
+      "createdAt": "2026-09-25T06:45:04.464Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
+      "id": "ord-audit-1790318656735",
+      "code": "NK-AUDIT-4035",
+      "createdAt": "2026-09-25T06:44:16.735Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
       "id": "ord-audit-1790304242821",
       "code": "NK-AUDIT-7824",
       "createdAt": "2026-09-25T02:44:02.821Z",
@@ -857,9 +992,9 @@
       "name": "Nanami Owner",
       "phone": "0834567890",
       "role": "owner",
-      "address": "HQ Nanami Kitchen, Jakarta",
+      "address": "HQ Nanami Kitchen, Rosebank, Johannesburg",
       "addresses": [
-        "HQ Nanami Kitchen, Jakarta"
+        "HQ Nanami Kitchen, Rosebank, Johannesburg"
       ],
       "points": 1500
     },
@@ -896,9 +1031,9 @@
       "name": "Customer Nanami",
       "phone": "0812345678",
       "role": "user",
-      "address": "Jl. Sudirman No. 10, Jakarta",
+      "address": "10 Oxford Road, Rosebank, Johannesburg",
       "addresses": [
-        "Jl. Sudirman No. 10, Jakarta"
+        "10 Oxford Road, Rosebank, Johannesburg"
       ],
       "points": 350
     },
@@ -1100,6 +1235,52 @@
       "address": "",
       "addresses": [],
       "points": 0
+    },
+    {
+      "id": "cust-71xc5avmugli4lu",
+      "name": "Audit User",
+      "email": "audit_user_1790318656721@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-awioza2muglj5fa",
+      "name": "Audit User",
+      "email": "audit_user_1790318704437@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-i0ruyvdmuhr8btm",
+      "name": "Automated Test Customer",
+      "email": "cust_1790388743383@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-ahpnxmtmuhr98wd",
+      "name": "Audit User",
+      "email": "audit_user_1790388786253@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
     }
   ],
   "staff": [
@@ -1246,6 +1427,78 @@
       "role": "user",
       "createdAt": 1790304242817,
       "expiresAt": 1792896242817
+    },
+    {
+      "id": "sess_uvzp781t87bmugli4lw",
+      "accountId": "cust-71xc5avmugli4lu",
+      "email": "audit_user_1790318656721@example.com",
+      "role": "user",
+      "createdAt": 1790318656725,
+      "expiresAt": 1792910656724
+    },
+    {
+      "id": "sess_wg9rcaki3cdmugli4m3",
+      "accountId": "cust-71xc5avmugli4lu",
+      "email": "audit_user_1790318656721@example.com",
+      "role": "user",
+      "createdAt": 1790318656732,
+      "expiresAt": 1792910656731
+    },
+    {
+      "id": "sess_ac3szyp6ofjmuglj5fa",
+      "accountId": "cust-awioza2muglj5fa",
+      "email": "audit_user_1790318704437@example.com",
+      "role": "user",
+      "createdAt": 1790318704439,
+      "expiresAt": 1792910704438
+    },
+    {
+      "id": "sess_vzz2m22m2kmuglj5fw",
+      "accountId": "cust-awioza2muglj5fa",
+      "email": "audit_user_1790318704437@example.com",
+      "role": "user",
+      "createdAt": 1790318704460,
+      "expiresAt": 1792910704460
+    },
+    {
+      "id": "sess_e44j5e817jdmuhr8btn",
+      "accountId": "cust-i0ruyvdmuhr8btm",
+      "email": "cust_1790388743383@example.com",
+      "role": "user",
+      "createdAt": 1790388743387,
+      "expiresAt": 1792980743387
+    },
+    {
+      "id": "sess_wksvh3otsymuhr8btw",
+      "accountId": "cust-i0ruyvdmuhr8btm",
+      "email": "cust_1790388743383@example.com",
+      "role": "user",
+      "createdAt": 1790388743396,
+      "expiresAt": 1792980743396
+    },
+    {
+      "id": "sess_n6qvmxuys4muhr8bu2",
+      "accountId": "demo-admin",
+      "email": "admin@nanami.id",
+      "role": "admin",
+      "createdAt": 1790388743402,
+      "expiresAt": 1792980743402
+    },
+    {
+      "id": "sess_gborghgbjxmuhr98we",
+      "accountId": "cust-ahpnxmtmuhr98wd",
+      "email": "audit_user_1790388786253@example.com",
+      "role": "user",
+      "createdAt": 1790388786255,
+      "expiresAt": 1792980786254
+    },
+    {
+      "id": "sess_ktik8zze2apmuhr98wj",
+      "accountId": "cust-ahpnxmtmuhr98wd",
+      "email": "audit_user_1790388786253@example.com",
+      "role": "user",
+      "createdAt": 1790388786259,
+      "expiresAt": 1792980786259
     }
   ]
 }

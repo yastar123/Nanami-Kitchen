@@ -298,7 +298,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
       {
         id: "p-signature",
         title: "Signature Bento Teriyaki",
-        subtitle: "Bento premium ayam teriyaki panggang nikmat",
+        subtitle: "Premium grilled chicken teriyaki bento with savory sauce",
         badge: "SIGNATURE",
         imageUrl: cms.heroImage || heroImg,
         link: "/menu",
@@ -388,7 +388,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
       {
         id: "p1",
         title: "Bento Teriyaki Signature",
-        subtitle: "Ayam teriyaki panggang lezat dengan saus otentik",
+        subtitle: "Delicious grilled chicken teriyaki with authentic sauce",
         badge: "SIGNATURE",
         imageUrl: heroImg,
         link: "/menu",
@@ -397,7 +397,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
       {
         id: "p2",
         title: "Crispy Smashed Chicken 20% OFF",
-        subtitle: "Ayam geprek renyah pedas gurih — kode: NANAMI20",
+        subtitle: "Crispy savory fiery smashed chicken — code: NANAMI20",
         badge: "HOT PROMO",
         imageUrl: food2,
         link: "/menu",
@@ -406,7 +406,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
       {
         id: "p3",
         title: "Crispy Snack Platter",
-        subtitle: "Camilan renyah pas untuk teman nongkrong",
+        subtitle: "Golden crunchy bites perfect for sharing",
         badge: "BEST SELLER",
         imageUrl: food3,
         link: "/menu",
@@ -415,7 +415,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
       {
         id: "p4",
         title: "Handcrafted Matcha & Boba",
-        subtitle: "Minuman segar boba manis dan creamy dingin",
+        subtitle: "Refreshing sweet boba and creamy iced beverage",
         badge: "REFRESHING",
         imageUrl: food4,
         link: "/menu",
@@ -735,8 +735,8 @@ export function CmsPanel(props: CmsPanelProps = {}) {
           <div className="space-y-6 lg:col-span-7">
             {/* Carousel Master Settings Card */}
             <SectionCard
-              title="Pengaturan Hero Banner & Promo Carousel"
-              description="Atur urutan banner carousel beranda pelanggan: carousel pertama gambar apa, carousel kedua gambar apa, teks, dan link promo."
+              title="Hero Banner & Carousel Slides"
+              description="Manage the order and content of hero carousel slides shown at the top of the storefront."
             >
               <div className="space-y-4">
                 <div className="flex flex-col gap-3 rounded-2xl border border-border bg-secondary/30 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -746,13 +746,13 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                         {currentHeroSlides.filter((s) => s.active !== false).length}
                       </span>
                       <p className="text-sm font-bold text-foreground">
-                        Status Banner Carousel Beranda
+                        Storefront Banner Carousel Status
                       </p>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {cms.heroActive !== false
-                        ? "Carousel aktif dan berputar otomatis di bagian atas aplikasi pelanggan."
-                        : "Hero carousel saat ini dinonaktifkan dari beranda pelanggan."}
+                        ? "Carousel is active and auto-rotates at the top of the customer app."
+                        : "Hero carousel is currently hidden from the customer storefront."}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -768,7 +768,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {cms.heroActive !== false ? "CAROUSEL AKTIF" : "NONAKTIF"}
+                      {cms.heroActive !== false ? "CAROUSEL ACTIVE" : "INACTIVE"}
                     </button>
                   </div>
                 </div>
@@ -777,7 +777,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4 pt-1">
                   <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
                     <SlidersHorizontal className="size-3.5 text-primary" />
-                    Urutan Banner Carousel ({promos.length || 1} Slide)
+                    Carousel Slide Order ({promos.length || 1} Slides)
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <button
@@ -786,7 +786,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-sm transition hover:bg-primary/90"
                     >
                       <Plus className="size-3.5" />
-                      {showAddSlideForm ? "Tutup Form Tambah" : "Tambah Slide Baru"}
+                      {showAddSlideForm ? "Close Form" : "Add New Slide"}
                     </button>
                     <button
                       type="button"
@@ -794,7 +794,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-secondary hover:text-foreground"
                     >
                       <RefreshCw className="size-3" />
-                      Muat 4 Banner Bawaan
+                      Load 4 Default Presets
                     </button>
                   </div>
                 </div>
@@ -805,7 +805,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-primary flex items-center gap-1.5">
                         <Sparkles className="size-3.5" />
-                        Tambah Slide Carousel Baru
+                        Add New Carousel Slide
                       </span>
                       <button
                         type="button"
@@ -818,13 +818,13 @@ export function CmsPanel(props: CmsPanelProps = {}) {
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="block text-xs text-muted-foreground">
-                        Judul Banner
+                        Banner Title
                         <input
                           value={newSlideForm.title}
                           onChange={(e) =>
                             setNewSlideForm((prev) => ({ ...prev, title: e.target.value }))
                           }
-                          placeholder="Misal: Promo Weekend Bento 20% OFF"
+                          placeholder="e.g. Weekend Bento Special 20% OFF"
                           className={fieldClass}
                         />
                       </label>
@@ -835,7 +835,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                           onChange={(e) =>
                             setNewSlideForm((prev) => ({ ...prev, badge: e.target.value }))
                           }
-                          placeholder="Misal: SPECIAL / 20% OFF / NEW"
+                          placeholder="e.g. SPECIAL / 20% OFF / NEW"
                           className={fieldClass}
                         />
                       </label>
@@ -843,24 +843,24 @@ export function CmsPanel(props: CmsPanelProps = {}) {
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="block text-xs text-muted-foreground">
-                        Subjudul / Keterangan
+                        Subtitle / Caption
                         <input
                           value={newSlideForm.subtitle}
                           onChange={(e) =>
                             setNewSlideForm((prev) => ({ ...prev, subtitle: e.target.value }))
                           }
-                          placeholder="Misal: Gunakan kode voucher NANAMI20"
+                          placeholder="e.g. Use voucher code NANAMI20"
                           className={fieldClass}
                         />
                       </label>
                       <label className="block text-xs text-muted-foreground">
-                        Link Tujuan (Opsional)
+                        Target Link (Optional)
                         <input
                           value={newSlideForm.link}
                           onChange={(e) =>
                             setNewSlideForm((prev) => ({ ...prev, link: e.target.value }))
                           }
-                          placeholder="/menu atau /vouchers"
+                          placeholder="/menu or /vouchers"
                           className={fieldClass}
                         />
                       </label>
@@ -869,7 +869,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                     {/* Quick Image Pick for New Slide */}
                     <div>
                       <label className="block text-xs text-muted-foreground mb-1.5">
-                        Pilih Foto Banner Slide:
+                        Select Slide Banner Image:
                       </label>
                       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
                         {HERO_PRESETS.map((p) => {
@@ -906,7 +906,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                           onChange={(e) =>
                             setNewSlideForm((prev) => ({ ...prev, imageUrl: e.target.value }))
                           }
-                          placeholder="Atau masukkan URL gambar (https://...)"
+                          placeholder="Or enter image URL (https://...)"
                           className={fieldClass}
                         />
                       </div>
@@ -918,16 +918,17 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                         onClick={() => setShowAddSlideForm(false)}
                         className="rounded-xl px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary"
                       >
-                        Batal
+                        Cancel
                       </button>
                       <button
                         type="button"
                         onClick={() => {
                           const newSlide: Promo = {
                             id: uid(),
-                            title: newSlideForm.title.trim() || "Promo Spesial Nanami",
+                            title: newSlideForm.title.trim() || "Nanami Special Promo",
                             subtitle:
-                              newSlideForm.subtitle.trim() || "Nikmati bento & hidangan lezat",
+                              newSlideForm.subtitle.trim() ||
+                              "Enjoy signature bentos & savory dishes",
                             badge: newSlideForm.badge.trim() || "PROMO",
                             imageUrl: newSlideForm.imageUrl.trim() || heroImg,
                             link: newSlideForm.link.trim() || "/menu",
@@ -952,7 +953,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                         }}
                         className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition"
                       >
-                        Simpan Slide Baru
+                        Save New Slide
                       </button>
                     </div>
                   </div>
@@ -1000,7 +1001,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                                   : "bg-secondary text-foreground border border-border"
                               }`}
                             >
-                              {isFirst ? "🌟 Slide #1 (Banner Utama)" : `Slide #${idx + 1}`}
+                              {isFirst ? "🌟 Slide #1 (Primary Banner)" : `Slide #${idx + 1}`}
                             </span>
                             <span
                               className={`rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${
@@ -1009,34 +1010,34 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                                   : "bg-muted text-muted-foreground"
                               }`}
                             >
-                              {isSlideActive ? "AKTIF" : "DISEMBUNYIKAN"}
+                              {isSlideActive ? "ACTIVE" : "HIDDEN"}
                             </span>
                           </div>
 
                           {/* Reorder and Action Buttons */}
                           <div className="flex items-center gap-1.5">
-                            {/* Move Up (Naikkan Urutan) */}
+                            {/* Move Up */}
                             <button
                               type="button"
                               disabled={isFirst}
                               onClick={() => handleMoveSlide(idx, "up")}
-                              title="Pindahkan ke posisi sebelumnya (Naik)"
+                              title="Move up"
                               className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-30 transition"
                             >
                               <ArrowUp className="size-3.5" />
-                              <span className="hidden sm:inline text-[11px]">Naik</span>
+                              <span className="hidden sm:inline text-[11px]">Up</span>
                             </button>
 
-                            {/* Move Down (Turunkan Urutan) */}
+                            {/* Move Down */}
                             <button
                               type="button"
                               disabled={isLast}
                               onClick={() => handleMoveSlide(idx, "down")}
-                              title="Pindahkan ke posisi berikutnya (Turun)"
+                              title="Move down"
                               className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-30 transition"
                             >
                               <ArrowDown className="size-3.5" />
-                              <span className="hidden sm:inline text-[11px]">Turun</span>
+                              <span className="hidden sm:inline text-[11px]">Down</span>
                             </button>
 
                             {/* Toggle Active Switch */}
@@ -1051,7 +1052,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                                   : "text-muted-foreground hover:bg-secondary"
                               }`}
                             >
-                              {isSlideActive ? "Sembunyikan" : "Aktifkan"}
+                              {isSlideActive ? "Hide" : "Show"}
                             </button>
 
                             {/* Delete Slide */}
@@ -1059,7 +1060,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                               <button
                                 type="button"
                                 onClick={() => handleDeleteSlide(slide.id)}
-                                title="Hapus slide ini dari carousel"
+                                title="Delete slide from carousel"
                                 className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition"
                               >
                                 <Trash2 className="size-3.5" />
@@ -1075,7 +1076,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                             {/* Slide Thumbnail */}
                             <div className="sm:col-span-4 space-y-2">
                               <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
-                                Foto Banner Slide
+                                Slide Banner Photo
                               </label>
                               <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-secondary/30 shadow-xs">
                                 <img
@@ -1107,7 +1108,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                                   onClick={() => setActiveGallerySlideId(slide.id)}
                                   className="flex items-center justify-center gap-1 rounded-xl border border-primary/30 bg-primary/10 px-2 py-2 text-[11px] font-bold text-primary hover:bg-primary/20 transition"
                                 >
-                                  <ImageIcon className="size-3" /> Galeri
+                                  <ImageIcon className="size-3" /> Gallery
                                 </button>
                               </div>
                             </div>
@@ -1117,7 +1118,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                               {/* Quick Preset Selector for this slide */}
                               <div>
                                 <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
-                                  Pilih Cepat Dari Gambar Bawaan:
+                                  Quick Preset Images:
                                 </label>
                                 <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
                                   {HERO_PRESETS.map((p) => {
@@ -1158,7 +1159,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                               {/* Image URL Input */}
                               <div>
                                 <label className="text-[11px] text-muted-foreground block mb-0.5">
-                                  Atau Link URL Gambar
+                                  Or Image URL
                                 </label>
                                 <input
                                   type="url"
@@ -1174,13 +1175,13 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                               {/* Title, Subtitle, Badge, Link Inputs */}
                               <div className="grid gap-2 sm:grid-cols-2">
                                 <label className="block text-[11px] text-muted-foreground">
-                                  Judul Slide
+                                  Slide Title
                                   <input
                                     value={slide.title || ""}
                                     onChange={(e) =>
                                       handleUpdateSlide(slide.id, { title: e.target.value })
                                     }
-                                    placeholder="Misal: 20% OFF All Bento"
+                                    placeholder="e.g. 20% OFF All Bento"
                                     className={fieldClass}
                                   />
                                 </label>
@@ -1191,7 +1192,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                                     onChange={(e) =>
                                       handleUpdateSlide(slide.id, { badge: e.target.value })
                                     }
-                                    placeholder="Misal: SPECIAL / 20% OFF"
+                                    placeholder="e.g. SPECIAL / 20% OFF"
                                     className={fieldClass}
                                   />
                                 </label>
@@ -1199,24 +1200,24 @@ export function CmsPanel(props: CmsPanelProps = {}) {
 
                               <div className="grid gap-2 sm:grid-cols-2">
                                 <label className="block text-[11px] text-muted-foreground">
-                                  Subjudul
+                                  Subtitle
                                   <input
                                     value={slide.subtitle || ""}
                                     onChange={(e) =>
                                       handleUpdateSlide(slide.id, { subtitle: e.target.value })
                                     }
-                                    placeholder="Misal: Gunakan kode promo NANAMI20"
+                                    placeholder="e.g. Use promo code NANAMI20"
                                     className={fieldClass}
                                   />
                                 </label>
                                 <label className="block text-[11px] text-muted-foreground">
-                                  Link Tujuan (Saat Diklik)
+                                  Target Link (When Clicked)
                                   <input
                                     value={slide.link || ""}
                                     onChange={(e) =>
                                       handleUpdateSlide(slide.id, { link: e.target.value })
                                     }
-                                    placeholder="/menu atau /vouchers"
+                                    placeholder="/menu or /vouchers"
                                     className={fieldClass}
                                   />
                                 </label>
@@ -1233,12 +1234,12 @@ export function CmsPanel(props: CmsPanelProps = {}) {
 
             {/* Headline Slogan & Store Messaging Card */}
             <SectionCard
-              title="Teks Tagline & Headline Header"
-              description="Pesan sambutan dan teks display restoran."
+              title="Tagline & Headline Text"
+              description="Welcome messages and storefront display copy."
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block text-xs text-muted-foreground">
-                  Headline Baris 1
+                  Headline Line 1
                   <input
                     value={cms.heroTitleLine1}
                     onChange={(e) => {
@@ -1250,7 +1251,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                   />
                 </label>
                 <label className="block text-xs text-muted-foreground">
-                  Headline Baris 2
+                  Headline Line 2
                   <input
                     value={cms.heroTitleLine2}
                     onChange={(e) => {
@@ -1265,7 +1266,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
 
               <div className="grid gap-4 pt-3 sm:grid-cols-2">
                 <label className="block text-xs text-muted-foreground">
-                  Tombol Aksi (CTA)
+                  Action Button (CTA)
                   <input
                     value={cms.heroCtaText}
                     onChange={(e) => {
@@ -1277,7 +1278,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                   />
                 </label>
                 <label className="block text-xs text-muted-foreground">
-                  Slogan Lengkap
+                  Full Slogan
                   <input
                     value={cms.heroSlogan}
                     onChange={(e) => {
@@ -1299,13 +1300,13 @@ export function CmsPanel(props: CmsPanelProps = {}) {
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
                   <Eye className="size-4 text-primary" />
-                  Live Preview Carousel
+                  Live Carousel Preview
                 </div>
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => setCarouselAutoPlay((v) => !v)}
-                    title={carouselAutoPlay ? "Jeda putar otomatis" : "Mulai putar otomatis"}
+                    title={carouselAutoPlay ? "Pause auto-rotation" : "Start auto-rotation"}
                     className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold transition ${
                       carouselAutoPlay
                         ? "bg-primary/20 text-primary border border-primary/30"
@@ -1336,7 +1337,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  📱 Tampilan Beranda Pelanggan
+                  📱 Customer Home View
                 </button>
                 <button
                   type="button"
@@ -1347,7 +1348,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  🖼️ Tampilan Fokus Banner
+                  🖼️ Focused Banner View
                 </button>
               </div>
 
@@ -1424,7 +1425,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                               prev === 0 ? displaySlides.length - 1 : prev - 1,
                             )
                           }
-                          aria-label="Slide sebelumnya"
+                          aria-label="Previous slide"
                           className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex size-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs hover:bg-black/70 transition"
                         >
                           <ChevronLeft className="size-4" />
@@ -1435,7 +1436,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                           onClick={() =>
                             setCarouselPreviewIdx((prev) => (prev + 1) % displaySlides.length)
                           }
-                          aria-label="Slide berikutnya"
+                          aria-label="Next slide"
                           className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex size-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs hover:bg-black/70 transition"
                         >
                           <ChevronRight className="size-4" />
@@ -1454,7 +1455,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                                 key={s.id || i}
                                 type="button"
                                 onClick={() => setCarouselPreviewIdx(i)}
-                                aria-label={`Pilih slide ${i + 1}`}
+                                aria-label={`Select slide ${i + 1}`}
                                 className={`h-1.5 rounded-full transition-all duration-300 ${
                                   i === safeIdx
                                     ? "w-5 bg-white"
@@ -1469,7 +1470,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       {carouselViewMode === "app" && (
                         <div className="border-t border-border/40 bg-card/40 p-2.5">
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-bold text-foreground">Menu Rekomendasi</span>
+                            <span className="font-bold text-foreground">Recommended Menu</span>
                             <span className="text-muted-foreground text-[10px]">Must Try!</span>
                           </div>
                         </div>
@@ -1481,14 +1482,14 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       <div className="rounded-xl border border-border bg-secondary/20 p-3 text-xs space-y-1.5">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                            Info Slide Aktif Saat Ini:
+                            Active Slide Details:
                           </span>
                           <span className="font-bold text-foreground">
                             Slide #{safeIdx + 1} ({currentSlide.badge || "PROMO"})
                           </span>
                         </div>
                         <p className="font-semibold text-foreground line-clamp-1">
-                          {currentSlide.title || "(Tanpa Judul)"}
+                          {currentSlide.title || "(Untitled)"}
                         </p>
                         {currentSlide.subtitle && (
                           <p className="text-muted-foreground text-[11px] line-clamp-1">
@@ -1518,9 +1519,8 @@ export function CmsPanel(props: CmsPanelProps = {}) {
               })()}
 
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                💡 <em>Tips:</em> Gunakan tombol <strong>Naik (↑)</strong> /{" "}
-                <strong>Turun (↓)</strong> pada kartu slide di sebelah kiri untuk mengubah urutan
-                tampil banner di carousel beranda pelanggan secara instan.
+                💡 <em>Tip:</em> Use the <strong>Up (↑)</strong> / <strong>Down (↓)</strong> buttons
+                on the left slide cards to immediately reorder banners in the storefront carousel.
               </p>
             </div>
           </div>
@@ -1533,7 +1533,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                   <div>
                     <h3 className="font-bold">Media Library</h3>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                      Pilih Foto Untuk Slide Carousel
+                      Select Photo for Carousel Slide
                     </p>
                   </div>
                   <button
@@ -1566,7 +1566,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                   <div>
                     <h3 className="font-bold">Media Library</h3>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                      Pilih Foto Hero Banner
+                      Select Hero Banner Photo
                     </p>
                   </div>
                   <button
@@ -1896,17 +1896,17 @@ export function CmsPanel(props: CmsPanelProps = {}) {
         <div className="grid gap-6 lg:grid-cols-12">
           <div className="space-y-6 lg:col-span-7">
             <SectionCard
-              title="Foto Full Welcome / Splash Screen"
-              description="Gambar pembuka full-screen saat pelanggan pertama kali membuka website/aplikasi."
+              title="Full-Bleed Welcome / Splash Screen"
+              description="Full-screen introductory visual displayed when customers first visit the website or app."
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/30 p-3.5">
                   <div>
                     <p className="text-sm font-semibold text-foreground">
-                      Aktifkan Welcome Splash Screen
+                      Enable Welcome Splash Screen
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Tampilkan gambar pembuka full-screen saat sesi pertama kali dimuat.
+                      Display full-screen splash visual upon initial visitor session.
                     </p>
                   </div>
                   <button
@@ -1921,13 +1921,13 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {cms.welcomeScreen.enabled ? "AKTIF" : "NONAKTIF"}
+                    {cms.welcomeScreen.enabled ? "ACTIVE" : "INACTIVE"}
                   </button>
                 </div>
 
                 <div>
                   <label className="block text-xs text-muted-foreground">
-                    Durasi Tampil Otomatis (Detik)
+                    Auto-Display Duration (Seconds)
                     <input
                       type="number"
                       step="0.5"
@@ -1943,7 +1943,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                       className={fieldClass}
                     />
                     <span className="text-[10px] text-muted-foreground mt-0.5 block">
-                      Pelanggan juga dapat mengetuk layar kapan saja untuk langsung masuk ke menu.
+                      Customers can also tap anywhere on the screen to skip directly to the menu.
                     </span>
                   </label>
                 </div>
@@ -1951,7 +1951,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                 <div className="space-y-3 pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-foreground">
-                      Pilihan Gambar Splash Bawaan (Presets)
+                      Built-in Splash Presets
                     </label>
                     {cms.welcomeScreen.imageUrl && (
                       <button
@@ -1962,7 +1962,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                         }}
                         className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition"
                       >
-                        <Trash2 className="size-3.5" /> Reset Gambar
+                        <Trash2 className="size-3.5" /> Reset Image
                       </button>
                     )}
                   </div>
@@ -2015,32 +2015,30 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                   <div className="grid gap-3 pt-2 sm:grid-cols-3">
                     <div>
                       <label className="text-xs font-semibold text-foreground">
-                        Upload Foto Full HD
+                        Upload Full HD Image
                       </label>
                       <button
                         type="button"
                         onClick={() => welcomeInputRef.current?.click()}
                         className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary/30 px-3 py-2.5 text-xs font-semibold text-muted-foreground transition hover:border-primary hover:text-foreground"
                       >
-                        <Upload className="size-4" /> Upload Dari Perangkat
+                        <Upload className="size-4" /> Upload From Device
                       </button>
                     </div>
 
                     <div>
-                      <label className="text-xs font-semibold text-foreground">Galeri Media</label>
+                      <label className="text-xs font-semibold text-foreground">Media Library</label>
                       <button
                         type="button"
                         onClick={() => setShowWelcomeGallery(true)}
                         className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
                       >
-                        <ImageIcon className="size-4" /> Pilih dari Galeri
+                        <ImageIcon className="size-4" /> Choose from Gallery
                       </button>
                     </div>
 
                     <div>
-                      <label className="text-xs font-semibold text-foreground">
-                        Atau Link URL Gambar
-                      </label>
+                      <label className="text-xs font-semibold text-foreground">Or Image URL</label>
                       <input
                         type="url"
                         placeholder="https://example.com/splash.jpg"
@@ -2064,10 +2062,10 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                         />
                         <div>
                           <p className="text-xs font-bold text-foreground">
-                            Foto Splash Kustom Aktif
+                            Custom Splash Image Active
                           </p>
                           <p className="text-[10px] text-muted-foreground">
-                            Ditampilkan full-screen resolusi tajam di semua ukuran layar.
+                            Displayed in crisp full-screen resolution across all device screens.
                           </p>
                         </div>
                       </div>
@@ -2078,7 +2076,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                           triggerToast();
                         }}
                         className="rounded-lg p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
-                        title="Hapus gambar"
+                        title="Remove image"
                       >
                         <Trash2 className="size-4" />
                       </button>
@@ -2096,7 +2094,7 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                   <div>
                     <h3 className="font-bold">Media Library</h3>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                      Pilih Gambar Welcome Screen
+                      Select Welcome Screen Image
                     </p>
                   </div>
                   <button
@@ -2125,10 +2123,10 @@ export function CmsPanel(props: CmsPanelProps = {}) {
             <div className="sticky top-20 rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                  <Eye className="size-4 text-primary" /> Live Preview Full Splash Screen
+                  <Eye className="size-4 text-primary" /> Live Full Splash Screen Preview
                 </span>
                 <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                  {cms.welcomeScreen.durationSec}s Durasi
+                  {cms.welcomeScreen.durationSec}s Duration
                 </span>
               </div>
 
@@ -2143,15 +2141,15 @@ export function CmsPanel(props: CmsPanelProps = {}) {
                 {/* Simulated skip hint */}
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
                   <span className="rounded-full bg-black/60 px-3 py-1 text-[10px] font-medium text-white/90 backdrop-blur-xs">
-                    Ketuk layar untuk langsung masuk &rarr;
+                    Tap anywhere to continue &rarr;
                   </span>
                 </div>
               </div>
 
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                ✨ <strong>Responsif & Tajam:</strong> Gambar splash akan otomatis mengisi penuh
-                layar (full-bleed) di smartphone, tablet, maupun layar desktop tanpa pecah atau
-                terpotong teks.
+                ✨ <strong>Responsive & Crisp:</strong> The splash visual automatically fills the
+                entire screen (full-bleed) on smartphones, tablets, and desktop displays without
+                stretching or breaking.
               </p>
             </div>
           </div>

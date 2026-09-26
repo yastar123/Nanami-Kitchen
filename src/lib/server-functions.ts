@@ -923,7 +923,7 @@ export const deleteStaffDb = createServerFn({ method: "POST" })
     const { sql } = await getDb();
     if (!sql) return { ok: true, source: "storage" };
     try {
-      await sql`DELETE FROM staff WHERE id = ${id}`;
+      await sql`DELETE FROM staff WHERE id = ${id} OR LOWER(email) = ${id.toLowerCase()}`;
       return { ok: true, source: "database" };
     } catch (e) {
       console.warn("Failed to delete staff from PostgreSQL (fallback deleted):", e);
@@ -1128,7 +1128,7 @@ export const deleteAccountDb = createServerFn({ method: "POST" })
     const { sql } = await getDb();
     if (!sql) return { ok: true, source: "storage" };
     try {
-      await sql`DELETE FROM accounts WHERE id = ${id}`;
+      await sql`DELETE FROM accounts WHERE id = ${id} OR LOWER(email) = ${id.toLowerCase()}`;
       return { ok: true, source: "database" };
     } catch (e) {
       console.warn("Failed to delete account from PostgreSQL (fallback deleted):", e);

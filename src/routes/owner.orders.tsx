@@ -9,7 +9,7 @@ export const Route = createFileRoute("/owner/orders")({
       {
         name: "description",
         content:
-          "Manage incoming orders, track preparation stages, filter by status, search customers, and print thermal receipts.",
+          "Manage incoming orders, track preparation stages, filter by status, and search customers across the kitchen pipeline.",
       },
       { property: "og:title", content: "Order Management — Owner Panel Nanami Kitchen" },
       {

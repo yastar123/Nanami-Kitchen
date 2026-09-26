@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Check, Printer } from "lucide-react";
+import { Check } from "lucide-react";
 import { actions, rupiah, useStore, type OrderStatus } from "@/lib/store";
-import { printReceipt } from "@/lib/receipt";
 
 const FLOW: OrderStatus[] = [
   "Pending Payment",
@@ -79,12 +78,6 @@ export function OrdersPanel({ readOnly = false }: { readOnly?: boolean }) {
                     <Check className="size-3.5" /> Mark Paid
                   </button>
                 )}
-                <button
-                  onClick={() => printReceipt(o)}
-                  className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
-                >
-                  <Printer className="size-3.5" /> Print
-                </button>
                 {!readOnly && (
                   <select
                     value={o.status}

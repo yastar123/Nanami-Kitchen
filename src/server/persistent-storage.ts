@@ -252,6 +252,15 @@ export function saveStaffStorage(staffMember: StaffMember): void {
   });
 }
 
+export function deleteStaffStorage(idOrEmail: string): void {
+  const current = getStorageData();
+  const clean = idOrEmail.toLowerCase();
+  persistStorage({
+    ...current,
+    staff: current.staff.filter((s) => s.id !== idOrEmail && s.email.toLowerCase() !== clean),
+  });
+}
+
 export function saveSettingsStorage(settings: Settings): void {
   const current = getStorageData();
   persistStorage({

@@ -1196,18 +1196,31 @@ export const actions = {
     });
   },
   saveStaff(member: StaffMember) {
-    set((s) => ({
-      ...s,
-      staff: s.staff.some((x) => x.id === member.id)
-        ? s.staff.map((x) => (x.id === member.id ? member : x))
-        : [...s.staff, member],
-    }));
+    const cleanEmail = member.email.trim().toLowerCase();
+    set((s) => {
+      const exists = s.staff.some(
+        (x) => x.id === member.id || x.email.toLowerCase() === cleanEmail,
+      );
+      return {
+        ...s,
+        staff: exists
+          ? s.staff.map((x) =>
+              x.id === member.id || x.email.toLowerCase() === cleanEmail ? member : x,
+            )
+          : [...s.staff, member],
+      };
+    });
     saveStaffDb({ data: member }).catch(console.error);
   },
   updateStaff(id: string, patch: Partial<StaffMember>) {
     set((s) => {
-      const updatedStaff = s.staff.map((x) => (x.id === id ? { ...x, ...patch } : x));
-      const updatedMember = updatedStaff.find((x) => x.id === id);
+      const cleanId = id.toLowerCase();
+      const updatedStaff = s.staff.map((x) =>
+        x.id === id || x.email.toLowerCase() === cleanId ? { ...x, ...patch } : x,
+      );
+      const updatedMember = updatedStaff.find(
+        (x) => x.id === id || x.email.toLowerCase() === cleanId,
+      );
       if (updatedMember) {
         saveStaffDb({ data: updatedMember }).catch(console.error);
       }
@@ -1215,9 +1228,13 @@ export const actions = {
     });
   },
   deleteStaff(id: string) {
+    const cleanId = id.toLowerCase();
     set((s) => {
       deleteStaffDb({ data: id }).catch(console.error);
-      return { ...s, staff: s.staff.filter((x) => x.id !== id) };
+      return {
+        ...s,
+        staff: s.staff.filter((x) => x.id !== id && x.email.toLowerCase() !== cleanId),
+      };
     });
   },
   updateSettings(patch: Partial<Settings>) {
@@ -1368,18 +1385,27 @@ export const actions = {
     }
   },
   saveAccount(acc: Account) {
-    set((s) => ({
-      ...s,
-      accounts: s.accounts.some((a) => a.id === acc.id)
-        ? s.accounts.map((a) => (a.id === acc.id ? acc : a))
-        : [...s.accounts, acc],
-    }));
+    const cleanEmail = acc.email.trim().toLowerCase();
+    set((s) => {
+      const exists = s.accounts.some(
+        (a) => a.id === acc.id || a.email.toLowerCase() === cleanEmail,
+      );
+      return {
+        ...s,
+        accounts: exists
+          ? s.accounts.map((a) =>
+              a.id === acc.id || a.email.toLowerCase() === cleanEmail ? { ...a, ...acc } : a,
+            )
+          : [...s.accounts, acc],
+      };
+    });
     saveAccountDb({ data: acc }).catch(console.error);
   },
   deleteAccount(id: string) {
+    const cleanId = id.toLowerCase();
     set((s) => ({
       ...s,
-      accounts: s.accounts.filter((a) => a.id !== id),
+      accounts: s.accounts.filter((a) => a.id !== id && a.email.toLowerCase() !== cleanId),
     }));
     deleteAccountDb({ data: id }).catch(console.error);
   },

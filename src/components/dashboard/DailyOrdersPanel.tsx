@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import { Printer } from "lucide-react";
 import { rupiah, useStore, type Order } from "@/lib/store";
-import { printReceipt } from "@/lib/receipt";
 import { StatCard } from "./DashboardShell";
 
 const DAY = 86400000;
@@ -37,13 +35,6 @@ function OrderRow({ order }: { order: Order }) {
       >
         {order.status}
       </span>
-      <button
-        onClick={() => printReceipt(order)}
-        aria-label={`Print receipt ${order.code}`}
-        className="text-muted-foreground"
-      >
-        <Printer className="size-4" />
-      </button>
     </li>
   );
 }

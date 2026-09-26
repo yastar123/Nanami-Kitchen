@@ -62,7 +62,7 @@ function OrderCard({ order }: { order: Order }) {
         <div>
           <p className="text-sm font-bold">{order.code}</p>
           <p className="text-xs capitalize text-muted-foreground">
-            {order.type} · {new Date(order.createdAt).toLocaleString("id-ID")}
+            {order.type} · {new Date(order.createdAt).toLocaleString("en-ZA")}
           </p>
         </div>
         <button

@@ -1,5 +1,4 @@
 import { formatCurrency } from "../lib/currency";
-import { printReceipt } from "../lib/receipt";
 import type { CartLine, Order } from "../lib/store";
 import { buildWhatsappMessage } from "../lib/whatsapp";
 

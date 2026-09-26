@@ -250,7 +250,7 @@ function AdminHome() {
                 </div>
                 <h3 className="mt-3 text-base font-bold">Daily Orders & Dispatch</h3>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  View incoming orders, change statuses, print customer receipts, and manage order
+                  View incoming orders, change statuses, manage dispatch stages, and review order
                   history.
                 </p>
                 <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground font-semibold">

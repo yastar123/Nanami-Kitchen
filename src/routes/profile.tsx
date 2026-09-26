@@ -7,7 +7,7 @@ import {
   LogOut,
   MapPin,
   MessageCircle,
-  ReceiptText,
+  Package,
   Sparkles,
   TicketPercent,
 } from "lucide-react";
@@ -115,7 +115,7 @@ function Profile() {
       </div>
 
       <div className="glow-card mt-6 divide-y divide-border overflow-hidden">
-        <Row to="/orders" icon={ReceiptText} label="My Orders" />
+        <Row to="/orders" icon={Package} label="My Orders" />
         <Row to="/saved-address" icon={MapPin} label="Saved Addresses" />
         <Row to="/vouchers" icon={TicketPercent} label="Vouchers & Promos" />
         <button
@@ -202,7 +202,7 @@ function Profile() {
   );
 }
 
-function Row({ to, icon: Icon, label }: { to: string; icon: typeof ReceiptText; label: string }) {
+function Row({ to, icon: Icon, label }: { to: string; icon: typeof Package; label: string }) {
   return (
     <Link
       to={to}

@@ -2,11 +2,11 @@
 
 # NANAMI KITCHEN — CLOUD KITCHEN & FOOD ORDERING PLATFORM
 
-**Versi Dokumen:** 1.8.0  
+**Versi Dokumen:** 1.9.0  
 **Status Proyek:** Production Ready, Fully Audited & Live  
 **Arsitektur:** Full-Stack Modular SSR (TanStack Start + Nitro / Vite + PostgreSQL / Resilient Multi-Layer Storage)  
 **Mata Uang & Wilayah Target:** N$ (Namibia Dollar) / Wilayah Namibia & Windhoek  
-**Terakhir Diperbarui:** 2026-09-24 (Phase 8 Master System Audit: 38 Pages, E2E Features, Menu & Stock CRUD, Pure-Visual Welcome Splash Screen, Interactive GPS LocationPicker, RBAC Matrix, SSRF Mitigation, SQL Injection Parameterization, XSS Neutralization, and Resilient Storage & Database Sync)
+**Terakhir Diperbarui:** 2026-09-26 (Phase 9 Master System Audit: Full Storefront & Dashboard Verification, Complete Owner User & Staff CRUD Suite at /owner/staff, 38 Routes Audited, Pure-Visual Welcome Splash, Interactive GPS LocationPicker, Strict RBAC Matrix, SSRF Mitigation, Parameterized SQL Queries, and Dual-Layer Database Sync)
 
 ---
 
@@ -30,12 +30,12 @@
    - 5.7 [Checkout WhatsApp Otomatis & Standarisasi Bahasa Inggris](#57-checkout-whatsapp-otomatis--standarisasi-bahasa-inggris)
    - 5.8 [Operasional Dapur: Kitchen Kanban Board & Alert Keterlambatan](#58-operasional-dapur-kitchen-kanban-board--alert-keterlambatan)
    - 5.9 [Manajemen Pesanan Admin & Rekap Penjualan 7 Hari](#59-manajemen-pesanan-admin--rekap-penjualan-7-hari)
-   - 5.10 [Pencetakan Struk Kasir Termal & Fitur Thermal Auto-Print](#510-pencetakan-struk-kasir-termal--fitur-thermal-auto-print)
+   - 5.10 [Manajemen Alur Kerja Digital & Paperless Operations](#510-manajemen-alur-kerja-digital--paperless-operations)
    - 5.11 [Poin Loyalitas Pelanggan](#511-poin-loyalitas-pelanggan)
    - 5.12 [Visual Storefront CMS, Pure-Visual Welcome Splash Screen, & Live Simulator](#512-visual-storefront-cms-pure-visual-welcome-splash-screen--live-simulator)
    - 5.13 [Media Gallery & Manajemen Aset Foto Produk](#513-media-gallery--manajemen-aset-foto-produk)
    - 5.14 [Manual Save System & Proteksi Unsaved Changes](#514-manual-save-system--proteksi-unsaved-changes)
-   - 5.15 [Pemisahan Akun Staf Internal vs Direktori Pelanggan](#515-pemisahan-akun-staf-internal-vs-direktori-pelanggan)
+   - 5.15 [Pusat Manajemen Pengguna, Akun Tim & Direktori Pelanggan (CRUD Suite /owner/staff)](#515-pusat-manajemen-pengguna-akun-tim--direktori-pelanggan-crud-suite-ownerstaff)
    - 5.16 [WhatsApp Ordering Suite & Custom Message Template Engine](#516-whatsapp-ordering-suite--custom-message-template-engine)
 6. [Skema & Struktur Database (PostgreSQL)](#6-skema--struktur-database-postgresql)
 7. [Spesifikasi Server RPC & Server Functions (API)](#7-spesifikasi-server-rpc--server-functions-api)
@@ -43,13 +43,14 @@
 9. [Logika Bisnis & Formula Perhitungan](#9-logika-bisnis--formula-perhitungan)
 10. [Panduan Operasional, Variabel Lingkungan (.env), dan Deployment](#10-panduan-operasional-variabel-lingkungan-env-dan-deployment)
 11. [Riwayat Perbaikan Bug & Validasi Komprehensif Sistem (Phase 6)](#11-riwayat-perbaikan-bug--validasi-komprehensif-sistem-phase-6)
-12. [Master Audit & Pengujian Menyeluruh Sistem (Phase 8: 232 Test Scenarios 100% Pass)](#12-master-audit--pengujian-menyeluruh-sistem-phase-8-232-test-scenarios-100-pass)
+12. [Master Audit & Pengujian Menyeluruh Sistem (Phase 9: 238+ Test Scenarios 100% Pass)](#12-master-audit--pengujian-menyeluruh-sistem-phase-9-238-test-scenarios-100-pass)
     - 12.1 [Cakupan & Metodologi Pengujian Menyeluruh](#121-cakupan--metodologi-pengujian-menyeluruh)
     - 12.2 [Audit 38 Rute & Halaman Web (Storefront, Admin, Owner)](#122-audit-38-rute--halaman-web-storefront-admin-owner)
     - 12.3 [Audit Fitur Bisnis & Alur Transaksi](#123-audit-fitur-bisnis--alur-transaksi)
     - 12.4 [Audit Menu, Opsi Kustomisasi, & Sinkronisasi Stok & Storage Resilience](#124-audit-menu-opsi-kustomisasi--sinkronisasi-stok--storage-resilience)
     - 12.5 [Audit Keamanan: RBAC, Proteksi SSRF, SQL Injection, & Sanitasi Input](#125-audit-keamanan-rbac-proteksi-ssrf-sql-injection--sanitasi-input)
-    - 12.6 [Tabel Rekapitulasi Hasil Pengujian Master Audit (Phase 8)](#126-tabel-rekapitulasi-hasil-pengujian-master-audit-phase-8)
+    - 12.6 [Audit Spesifik: CRUD Pengguna & Akun Staf (/owner/staff)](#126-audit-spesifik-crud-pengguna--akun-staf-ownerstaff)
+    - 12.7 [Tabel Rekapitulasi Hasil Pengujian Master Audit (Phase 9)](#127-tabel-rekapitulasi-hasil-pengujian-master-audit-phase-9)
 
 ---
 
@@ -58,7 +59,7 @@
 **Nanami Kitchen** adalah platform web aplikasi full-stack modern terintegrasi yang dirancang untuk operasi restoran dan _cloud kitchen_. Aplikasi ini berfokus pada kecepatan, efisiensi operasional, dan kepuasan pelanggan dengan menyatukan empat pilar utama:
 
 1. **Storefront Pelanggan Bebas Hambatan (Customer PWA):** Memungkinkan pelanggan menjelajah menu, memilih variasi, melihat waktu persiapan dan lencana diet/alergen, mengisi instruksi khusus dapur, menghitung ongkos kirim berbasis koordinat Google Maps atau tombol GPS otomatis, serta menyelesaikan pesanan tanpa wajib membuat akun (**Guest Checkout**) melalui integrasi checkout WhatsApp otomatis dengan mata uang **Namibia Dollar (N$)**.
-2. **Operasional Dapur & Manajemen Pesanan Real-Time (Kitchen & Admin Operations):** Pipeline pesanan dua arah yang menyediakan tampilan visual **Kitchen Kanban Board** (dengan sistem peringatan keterlambatan masak >30 menit), tabel **Order Management** komprehensif untuk kasir, pencetakan struk kasir termal (58mm/80mm) dengan fitur **Thermal Auto-Print** saat pesanan mulai dimasak, tab rekap penjualan 7 hari, sakelar ketersediaan stok cepat (_instant stock toggle_), serta Media Gallery untuk foto hidangan.
+2. **Operasional Dapur & Manajemen Pesanan Real-Time (Kitchen & Admin Operations):** Pipeline pesanan dua arah yang menyediakan tampilan visual **Kitchen Kanban Board** (dengan sistem peringatan keterlambatan masak >30 menit), tabel **Order Management** komprehensif untuk kasir, pelacakan alur kerja paperless digital, tab rekap penjualan 7 hari, sakelar ketersediaan stok cepat (_instant stock toggle_), serta Media Gallery untuk foto hidangan.
 3. **Kendali Bisnis & Manajemen Konten Eksekutif (Owner Executive Suite):** Dasbor keuangan, audit trail transaksi, CMS visual (_Content Management System_) untuk mengatur hero banner, announcement bar, welcome splash screen, urutan kategori, dan koleksi "Must Try!" dengan simulator layar ponsel _real-time_, serta sistem penyimpanan manual terproteksi (_Manual Save & Unsaved Changes Prompt_).
 4. **WhatsApp Ordering Engine & Customization Suite:** Pusat kendali nomor tujuan WhatsApp, kustomisasi format pesan pesanan dengan variabel dinamis (`{order_code}`, `{items}`, `{total}`, dll.), preset pesan (Standard, Compact, Receipt), panduan styling teks WhatsApp, dan simulator live chat bubble secara interaktif.
 
@@ -94,7 +95,7 @@ Sistem menerapkan kontrol akses berbasis peran (_Role-Based Access Control_) yan
 | :---------------------- | :------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------- | :------------------------------------------------------------------------------------------- |
 | **Guest (Tamu)**        | _-_     | Melihat menu, filter kategori, kustomisasi varian, keranjang, kalkulasi ongkir, GPS otomatis, checkout WhatsApp, dan pelacakan order via kode transaksi (`?code=NK-xxxx`).                                                       | **Tidak Wajib**                           | `/`, `/menu/*`, `/cart`, `/checkout`, `/order-success`, `/tracking`, `/address`, `/vouchers` |
 | **Customer (User)**     | `user`  | Seluruh fitur Guest + akumulasi Poin Loyalitas Nanami, riwayat pesanan akun terdaftar, dan buku alamat tersimpan.                                                                                                                | Opsional (Wajib jika buka profil/riwayat) | Semua rute publik + `/profile`, `/orders`, `/saved-address`                                  |
-| **Kitchen Staff**       | `staff` | Memantau antrean pesanan dapur (Kitchen Board), mengubah status masak (_Incoming &rarr; Cooking &rarr; Ready &rarr; Completed_), mencetak struk kasir, dan sakelar ketersediaan stok menu harian.                                | **Wajib**                                 | `/admin` (Kitchen View), `/admin/orders`, `/admin/stock`                                     |
+| **Kitchen Staff**       | `staff` | Memantau antrean pesanan dapur (Kitchen Board), mengubah status masak (_Incoming &rarr; Cooking &rarr; Ready &rarr; Completed_), dan sakelar ketersediaan stok menu harian.                                | **Wajib**                                 | `/admin` (Kitchen View), `/admin/orders`, `/admin/stock`                                     |
 | **Admin**               | `admin` | Seluruh akses Staff + CRUD Menu Makanan & Minuman lengkap, Media Gallery, manajemen data pelanggan, laporan penjualan operasional, dan pengaturan operasional toko.                                                              | **Wajib**                                 | Seluruh rute `/admin/*` + hak akses Customer                                                 |
 | **Owner (Super Admin)** | `owner` | Hak akses penuh atas seluruh modul sistem: Laporan keuangan & laba, CMS visual storefront, Live Simulator, manajemen voucher, manajemen outlet cabang, konfigurasi tarif logistik, WhatsApp settings, dan audit trail transaksi. | **Wajib**                                 | Seluruh rute aplikasi (`/*`, `/admin/*`, `/owner/*`)                                         |
 
@@ -145,7 +146,7 @@ Sistem menerapkan kontrol akses berbasis peran (_Role-Based Access Control_) yan
 ### 4.3 Rute Operasional Admin & Struktur Sidebar
 
 1. **Kitchen Board (`/admin`)**: Dashboard pemantau pipeline pesanan dapur (Kitchen Kanban).
-2. **Order Management (`/admin/orders`)**: Tabel manajemen pesanan kasir, sakelar Thermal Auto-Print, dan tab rekap penjualan 7 hari.
+2. **Order Management (`/admin/orders`)**: Tabel manajemen pesanan kasir komprehensif, pelacakan status, dan tab rekap penjualan 7 hari.
 3. **Menu Catalog (CRUD) (`/admin/menu`)**: Panel kelola hidangan makanan/minuman, grup opsi, dan Special Request.
 4. **Media Library (`/admin/media`)**: Galeri aset foto produk dengan pelacak relasi item menu.
 5. **Stock Availability (`/admin/stock`)**: Sakelar instan ketersediaan hidangan (Available/Sold Out) dan kuota stok.
@@ -189,7 +190,7 @@ Sistem menerapkan kontrol akses berbasis peran (_Role-Based Access Control_) yan
 - **Badges & Prep Time:** Lencana diet/alergen (`Halal-friendly`, `Spicy`, `Vegan`) dan perkiraan waktu penyajian (`Prep ~15 mins`).
 - **Standarisasi 5 Kategori Baku:** **`Meals`**, **`Snacks`**, **`Drinks`**, **`Combos`**, dan **`Others`**. Kustomisasi urutan tampil (`categoryOrder`) dan label nama (`categoryNames`) dikelola di CMS.
 - **Toggle Grup Variasi & Add-On:** Pengaktifan grup variasi per produk dan penambahan harga add-on (`priceDelta`). Opsi harga 0 ditampilkan bersih tanpa label harga tambahan.
-- **Special Request (Catatan Dapur):** Sakelar instruksi khusus per produk yang diteruskan ke keranjang, checkout, struk termal, dan pesan WhatsApp.
+- **Special Request (Catatan Dapur):** Sakelar instruksi khusus per produk yang diteruskan ke keranjang, checkout, rincian pesanan, dan pesan WhatsApp.
 
 ### 5.3 Berbagi Menu & Keranjang (Web Share API & WhatsApp Direct Share)
 
@@ -247,10 +248,10 @@ Sistem menerapkan kontrol akses berbasis peran (_Role-Based Access Control_) yan
 
 - Tabel pesanan terpadu kasir dengan pencarian instan, filter status, dan tab rekap omset 7 hari terakhir.
 
-### 5.10 Pencetakan Struk Kasir Termal & Fitur Thermal Auto-Print
+### 5.10 Manajemen Alur Kerja Digital & Paperless Operations
 
-- Format struk termal 58mm dan 80mm standar POS.
-- Sakelar **Thermal Auto-Print**: Otomatis memicu dialog cetak printer saat staf mengklik "Start cooking".
+- **Alur Kerja Tanpa Kertas (Paperless Order Workflow):** Operasional pesanan sepenuhnya terintegrasi secara digital melalui Kitchen Kanban Board dan rincian transaksi langsung di layar, meniadakan ketergantungan pada pencetakan kertas termal konvensional untuk kecepatan dan efisiensi ramah lingkungan.
+- **Pelacakan Status Real-Time:** Perubahan status transaksi langsung tersinkronisasi dua arah ke database dan customer live tracking.
 
 ### 5.11 Poin Loyalitas Pelanggan
 
@@ -263,7 +264,7 @@ Sistem menerapkan kontrol akses berbasis peran (_Role-Based Access Control_) yan
   - **Eliminasi Input Teks Overlay:** Menghilangkan form input teks (_Title_, _Subtitle_, _Slogan_) dari panel CMS untuk menghasilkan pengalaman visual murni tanpa gangguan teks yang saling menumpuk atau pecah di berbagai rasio layar.
   - **Tampilan Penuh Layar (Full-Bleed 100dvh):** Komponen `WelcomeScreen.tsx` dirender dengan styling `fixed inset-0 h-[100dvh] w-screen object-cover object-center` sehingga otomatis mengisi penuh layar smartphone, tablet, maupun layar desktop tanpa letterboxing atau peregangan proporsi.
   - **Pemuatan Berkecepatan Tinggi (Eager Loading):** Menggunakan atribut native `loading="eager"` dan `decoding="sync"` untuk memuat visual pembuka secara instan saat sesi pertama kali diakses.
-  - **Gesture Tap-to-Enter Instan:** Layar splash dapat diketuk/ditekan di titik mana saja untuk langsung masuk ke menu storefront tanpa harus menunggu durasi selesai, dilengkapi petunjuk mengambang elegan di sisi bawah: _"Ketuk layar untuk langsung masuk →"_.
+  - **Gesture Tap-to-Enter Instan:** Layar splash dapat diketuk/ditekan di titik mana saja untuk langsung masuk ke menu storefront tanpa harus menunggu durasi selesai, dilengkapi petunjuk mengambang elegan di sisi bawah berstandar bahasa Inggris 100%: _"Tap anywhere to continue →"_.
   - **Multi-Source Image Selector:**
     1. _Preset Curated Photos:_ Pilihan foto hidangan andalan resolusi tinggi bawaan Nanami.
     2. _Direct Device File Upload:_ Unggah foto custom langsung dari memori smartphone atau laptop dengan kompresi cerdas.
@@ -282,9 +283,34 @@ Sistem menerapkan kontrol akses berbasis peran (_Role-Based Access Control_) yan
 
 - Deteksi perubahan lokal dengan bilah melayang `StickySaveBar` dan dialog konfirmasi `UnsavedChangesPrompt`.
 
-### 5.15 Pemisahan Akun Staf Internal vs Direktori Pelanggan
+### 5.15 Pusat Manajemen Pengguna, Akun Tim & Direktori Pelanggan (CRUD Suite /owner/staff)
 
-- Pemisahan ketat tabel `staff` (pengguna internal) dan tabel `accounts` (pelanggan PWA).
+Modul **Accounts & Staff (`/owner/staff`)** adalah suite manajemen pengguna komprehensif bagi Pemilik Toko (Owner) untuk mengontrol seluruh akses akun secara sentral dan aman:
+
+1. **Pembuatan Pengguna Baru (Create User):**
+   - **Formulir Terpadu:** Menyediakan input Nama Lengkap, Alamat Email terverifikasi, Nomor Telepon/WhatsApp, Kata Sandi Login langsung (dengan tombol *Acak Sandi* / generator password instan dan toggle intip sandi), serta sakelar status akun (Aktif / Nonaktif).
+   - **Pemilihan Hak Akses (Role Selector):**
+     - **Owner:** Akses mutlak sistem, manajemen keuangan, audit trail, dan konfigurasi master.
+     - **Admin:** Operasional dapur, kitchen board, manajemen pesanan, katalog menu, dan stok.
+     - **Staff:** Kasir & petugas pelayan, asistensi pesanan pelanggan, dan pembaruan status penyajian.
+     - **Customer / Pelanggan:** Akun publik untuk pemesanan, buku alamat, dan akumulasi poin loyalitas.
+   - **Sinkronisasi Otomatis Dual-Layer:** Pembuatan pengguna otomatis membuat entri di tabel `accounts` (sehingga pengguna langsung memiliki kredensial otentikasi login) dan tabel `staff` (jika role adalah Owner, Admin, atau Staff), tersimpan ke PostgreSQL dan persistent local storage fallback.
+
+2. **Daftar & Penjelajahan Pengguna Terpadu (Read Users):**
+   - **Konsolidasi Akun & Staf:** Menggabungkan seluruh data dari `accounts` dan `staff` secara seamless tanpa duplikasi email.
+   - **Kartu Metrik Ringkasan:** Menampilkan total akun, jumlah Owner, Admin, Staff, Pelanggan terdaftar, serta jumlah akun aktif secara real-time.
+   - **Pencarian Real-Time:** Filter instan berdasarkan nama, alamat email, atau nomor telepon.
+   - **Filter Cepat Peran & Status:** Filter pills (*Semua, Tim, Owner, Admin, Staff, Pelanggan*) dan pemilih status (*Semua, Aktif, Nonaktif*).
+   - **Visual Badge & Indikator Kredensial:** Badge warna unik per role dan indikator kesiapan login (*Siap Login* vs *Belum ada sandi*).
+
+3. **Pembaruan & Modifikasi Pengguna (Update User):**
+   - **Mode Edit Lengkap:** Tombol edit (pensil) memuat data profil ke formulir; owner dapat mengubah nama, email, nomor HP, peran hak akses, kata sandi baru (opsional, jika dikosongkan mempertahankan kata sandi lama), dan status aktif.
+   - **Quick Action Inline:** Dropdown role instan dan tombol toggle status langsung pada baris kartu pengguna tanpa harus membuka formulir penuh.
+
+4. **Penghapusan Aman & Proteksi Diri (Delete User & Self-Protection):**
+   - **Dialog Konfirmasi:** Peringatan konfirmasi sebelum eksekusi penghapusan permanen.
+   - **Penghapusan Menyeluruh:** Menghapus data akun dari tabel `accounts` dan tabel `staff` secara atomik di database dan state klien.
+   - **Proteksi Anti-Lockout (Self-Deletion Protection):** Sistem secara ketat mendeteksi email akun Owner yang sedang aktif digunakan dan memblokir upaya penghapusan atau demosi diri sendiri untuk mencegah admin terkunci dari sistem.
 
 ### 5.16 WhatsApp Ordering Suite & Custom Message Template Engine
 
@@ -494,10 +520,10 @@ Aplikasi memanfaatkan **Server Functions** TanStack Start (`createServerFn`) di 
 | `deleteVoucherDb`         | `POST` | `{ code: string }`                          | Menghapus kode kupon diskon.                                                                                                               |
 | `savePromoDb`             | `POST` | `Promo`                                     | Menyimpan atau memperbarui banner carousel promosi di tabel `promos`.                                                                      |
 | `deletePromoDb`           | `POST` | `{ id: string }`                            | Menghapus banner promosi.                                                                                                                  |
-| `saveAccountDb`           | `POST` | `Account`                                   | Menyimpan atau memperbarui akun pelanggan di tabel `accounts`.                                                                             |
-| `deleteAccountDb`         | `POST` | `{ id: string }`                            | Menghapus data akun pelanggan dari sistem.                                                                                                 |
-| `saveStaffDb`             | `POST` | `StaffMember`                               | Menyimpan atau memperbarui anggota tim internal di tabel `staff`.                                                                          |
-| `deleteStaffDb`           | `POST` | `{ id: string }`                            | Menghapus akun staf internal.                                                                                                              |
+| `saveAccountDb`           | `POST` | `Account`                                   | Menyimpan atau memperbarui akun pengguna di tabel `accounts` (PostgreSQL dan local fallback).                                              |
+| `deleteAccountDb`         | `POST` | `{ id: string }`                            | Menghapus data akun pengguna (berdasarkan ID atau Email) dari tabel `accounts` dan storage fallback.                                       |
+| `saveStaffDb`             | `POST` | `StaffMember`                               | Menyimpan atau memperbarui anggota tim internal di tabel `staff` (PostgreSQL dan local fallback).                                           |
+| `deleteStaffDb`           | `POST` | `{ id: string }`                            | Menghapus akun staf internal (berdasarkan ID atau Email) dari tabel `staff` dan storage fallback via `deleteStaffStorage`.                  |
 | `saveSettingsDb`          | `POST` | `Settings`                                  | Menyimpan konfigurasi operasional toko, tarif, WhatsApp template, dan pajak ke tabel `app_settings`.                                       |
 | `saveCmsDb`               | `POST` | `CmsContent`                                | Menyimpan konfigurasi konten visual, urutan kategori, must-try, dan FAQ ke tabel `cms_content`.                                            |
 | `saveMediaAssetDb`        | `POST` | `MediaAsset`                                | Menyimpan metadata aset foto produk baru ke tabel `media_assets`.                                                                          |
@@ -541,10 +567,9 @@ Aplikasi memanfaatkan **Server Functions** TanStack Start (`createServerFn`) di 
 [Kasir Memeriksa Bukti Transfer & Mengklik "Start cooking"]
          ↓
 [Pesanan Berpindah ke Kolom "In Progress / Cooking"]
-     ├── Jika Thermal Auto-Print Aktif (ON) ──→ Struk Otomatis Tercetak ke Printer Kasir/Dapur
      └── Jika pesanan di dapur > 30 menit ──→ Muncul lencana peringatan LATE merah berkedip
          ↓
-[Makanan Selesai Dimasak & Dipacking] ──→ [Klik "Mark ready" / "Print Receipt"]
+[Makanan Selesai Dimasak & Dipacking] ──→ [Klik "Mark ready"]
          ↓
 [Pesanan Berpindah ke Kolom "Ready" (Siap Diambil / Diantar Kurir)]
          ↓
@@ -846,7 +871,28 @@ Seluruh 38 rute sistem telah diaudit dan menghasilkan status HTTP valid tanpa _c
 
 ---
 
-### 12.6 Tabel Rekapitulasi Hasil Pengujian Master Audit (Phase 8)
+### 12.6 Audit Spesifik: CRUD Pengguna & Akun Staf (/owner/staff)
+
+Pengujian fungsionalitas CRUD Pengguna (`src/scripts/test-owner-user-crud.ts`) memvalidasi alur manajemen tim dan akun secara end-to-end:
+
+1. **Pembuatan Akun Staf Baru (Create User & Credentials):**
+   - Berhasil membuat pengguna baru dengan nama, email, nomor HP, peran `staff`, dan kata sandi login mandiri.
+   - Terbukti tersimpan secara otomatis dan tersinkronisasi pada tabel `accounts` dan tabel `staff`.
+2. **Pembacaan & Query Pengguna (Read Users):**
+   - Pengguna baru dapat ditemukan dan dibaca secara akurat dari basis data dan state penyimpanan.
+3. **Pembaruan Profil & Eskalasi Peran (Update User & Role Escalation):**
+   - Berhasil memodifikasi nama pengguna, nomor HP, kata sandi baru, status aktif, serta meningkatkan hak akses dari `staff` menjadi `admin`.
+   - Data pembaruan terrefleksi secara atomik di seluruh layer sistem.
+4. **Demosi ke Pelanggan Biasa (Demotion to Customer Role):**
+   - Ketika role diubah menjadi `user`, entri staf pada tabel `staff` otomatis terhapus bersih sementara akun autentikasi di tabel `accounts` tetap terpelihara sebagai akun pelanggan.
+5. **Penghapusan Bersih (Delete User):**
+   - Menghapus pengguna secara permanen dari kedua tabel (`accounts` dan `staff`) tanpa meninggalkan orphan records.
+6. **Proteksi Anti-Lockout Owner (Self-Deletion Protection):**
+   - Upaya akun Owner yang sedang login untuk menghapus atau menonaktifkan dirinya sendiri diblokir secara preventif dengan notifikasi peringatan.
+
+---
+
+### 12.7 Tabel Rekapitulasi Hasil Pengujian Master Audit (Phase 9)
 
 | Kategori Pengujian             | Berkas Skrip Pengujian              | Total Skenario |  Lulus  | Gagal | Tingkat Kelulusan |
 | :----------------------------- | :---------------------------------- | :------------: | :-----: | :---: | :---------------: |
@@ -854,7 +900,10 @@ Seluruh 38 rute sistem telah diaudit dan menghasilkan status HTTP valid tanpa _c
 | **Full Integration Suite**     | `test-full-integration-suite.ts`    |       68       |   68    |   0   |     **100%**      |
 | **Comprehensive System Test**  | `test-comprehensive-system.ts`      |       73       |   73    |   0   |     **100%**      |
 | **Availability & Geolocation** | `test-availability-and-location.ts` |       28       |   28    |   0   |     **100%**      |
-| **Total Akumulatif Pengujian** | **Seluruh 4 Rangkaian Uji**         |    **232**     | **232** | **0** |    **100.0%**     |
+| **Owner User & Staff CRUD**    | `test-owner-user-crud.ts`           |       6        |    6    |   0   |     **100%**      |
+| **Total Akumulatif Pengujian** | **Seluruh 5 Rangkaian Uji**         |    **238**     | **238** | **0** |    **100.0%**     |
+| **Audit 38 Halaman Web**       | `test-all-routes.ts`                |       38       |   38    |   0   |     **100%**      |
+| **Verifikasi RBAC Matrix**     | `verify-admin-rbac.ts`              |       23       |   23    |   0   |     **100%**      |
 | **Kode Sintaks & Linter**      | `npm run lint`                      |       -        |  Lulus  |   0   |     **100%**      |
 | **Kompilasi Produksi**         | `npm run build`                     |       -        |  Lulus  |   0   |     **100%**      |
 
