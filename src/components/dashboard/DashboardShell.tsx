@@ -57,7 +57,7 @@ const OWNER_TOOLS: NavItem[] = [
   { to: "/owner/preview", label: "Live Preview", icon: Smartphone },
   { to: "/owner/vouchers", label: "Vouchers & Promos", icon: Ticket },
   { to: "/owner/customers", label: "Customers", icon: Users },
-  { to: "/owner/staff", label: "Accounts & Staff", icon: ShieldCheck },
+  { to: "/owner/staff", label: "Akun & Staf", icon: ShieldCheck },
   { to: "/owner/outlets", label: "Outlets", icon: Store },
   { to: "/owner/shipping", label: "Delivery Rates", icon: Truck },
   { to: "/owner/whatsapp", label: "WhatsApp Settings", icon: MessageSquare },

@@ -5,16 +5,16 @@ import { StaffPanel } from "@/components/dashboard/StaffPanel";
 export const Route = createFileRoute("/owner/staff")({
   head: () => ({
     meta: [
-      { title: "Accounts & Staff — Owner Panel Nanami Kitchen" },
+      { title: "Akun & Staf — Panel Pemilik Nanami Kitchen" },
       {
         name: "description",
         content:
-          "Manage Nanami Kitchen team accounts: invite members, assign owner, admin, or staff roles, and view permissions.",
+          "Kelola akun tim Nanami Kitchen: undang anggota, tetapkan peran pemilik, admin, atau staf, dan atur hak akses pengguna.",
       },
-      { property: "og:title", content: "Accounts & Staff — Owner Panel Nanami Kitchen" },
+      { property: "og:title", content: "Akun & Staf — Panel Pemilik Nanami Kitchen" },
       {
         property: "og:description",
-        content: "Manage team accounts and permissions for Nanami Kitchen.",
+        content: "Kelola akun tim dan hak akses pengguna untuk Nanami Kitchen.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -23,8 +23,8 @@ export const Route = createFileRoute("/owner/staff")({
   component: () => (
     <DashboardShell
       role="owner"
-      title="Accounts & Staff"
-      subtitle="Configure owner, admin, and staff roles and permissions"
+      title="Akun & Staf"
+      subtitle="Kelola peran dan hak akses akun pemilik, admin, staf, serta pelanggan"
     >
       <StaffPanel />
     </DashboardShell>

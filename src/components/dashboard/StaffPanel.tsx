@@ -56,31 +56,31 @@ const ROLES: {
     value: "owner",
     label: "Owner",
     badge: "Owner / Pemilik",
-    desc: "Akses penuh sistem, kelola tim & akun, laporan keuangan, dan pengaturan",
+    desc: "Akses penuh sistem, kelola tim & akun, laporan keuangan, dan pengaturan toko",
     badgeClass: "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30",
     borderActive: "border-purple-500 bg-purple-500/10",
   },
   {
     value: "admin",
     label: "Admin",
-    badge: "Kitchen Admin",
-    desc: "Operasional dapur, kitchen board, manajemen pesanan, menu, dan stok",
+    badge: "Admin Dapur",
+    desc: "Operasional dapur, papan pesanan dapur, manajemen pesanan, menu, dan ketersediaan stok",
     badgeClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
     borderActive: "border-blue-500 bg-blue-500/10",
   },
   {
     value: "staff",
-    label: "Staff",
-    badge: "Staff / Kasir",
-    desc: "Pencatatan & pemrosesan pesanan, update status masak & kasir",
+    label: "Staf",
+    badge: "Staf / Kasir",
+    desc: "Pencatatan & pemrosesan pesanan, pembaruan status memasak, dan operasional kasir",
     badgeClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
     borderActive: "border-amber-500 bg-amber-500/10",
   },
   {
     value: "user",
-    label: "Customer",
-    badge: "Pelanggan / User",
-    desc: "Akun pelanggan reguler: pemesanan menu, riwayat, dan poin loyalitas",
+    label: "Pelanggan",
+    badge: "Pelanggan / Pengguna",
+    desc: "Akun pelanggan reguler: pemesanan menu, riwayat transaksi, dan akumulasi poin",
     badgeClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
     borderActive: "border-emerald-500 bg-emerald-500/10",
   },
@@ -145,7 +145,7 @@ export function StaffPanel() {
         id: s.id,
         accountId: matchedAcc?.id,
         staffId: s.id,
-        name: s.name || matchedAcc?.name || "Staff Member",
+        name: s.name || matchedAcc?.name || "Anggota Staf",
         email: s.email,
         phone: s.phone || matchedAcc?.phone || "",
         role: (s.role as UserRole) || (matchedAcc?.role as UserRole) || "staff",
@@ -173,7 +173,7 @@ export function StaffPanel() {
         id: a.id,
         accountId: a.id,
         staffId: undefined,
-        name: a.name || "User",
+        name: a.name || "Pelanggan",
         email: a.email,
         phone: a.phone || "",
         role: (a.role as UserRole) || "user",
@@ -353,16 +353,16 @@ export function StaffPanel() {
         }
       }
 
-      toast.success(`Pengguna "${trimmedName}" berhasil diperbarui!`);
+      toast.success(`Data pengguna "${trimmedName}" berhasil diperbarui!`);
       resetForm();
     } else {
       // CREATE NEW USER - EMAIL & PASSWORD REQUIRED
       if (!password.trim()) {
-        toast.error("Kata sandi / Password wajib diisi untuk membuat akun baru.");
+        toast.error("Kata sandi wajib diisi untuk membuat akun baru.");
         return;
       }
       if (password.trim().length < 4) {
-        toast.error("Kata sandi / Password minimal 4 karakter.");
+        toast.error("Kata sandi minimal 4 karakter.");
         return;
       }
 
@@ -404,7 +404,7 @@ export function StaffPanel() {
       }
 
       toast.success(
-        `Pengguna "${trimmedName}" berhasil dibuat dengan email "${cleanEmail}" dan siap login!`,
+        `Pengguna "${trimmedName}" berhasil dibuat dengan email "${cleanEmail}" dan siap masuk!`,
       );
       resetForm();
     }
@@ -478,7 +478,7 @@ export function StaffPanel() {
     const currentEmail = (profile?.email || "").trim().toLowerCase();
 
     if (currentEmail && cleanEmail === currentEmail && newRole !== "owner") {
-      toast.error("Tidak dapat mengubah role akun Anda sendiri saat sedang login!");
+      toast.error("Tidak dapat mengubah peran akun Anda sendiri saat sedang masuk!");
       return;
     }
 
@@ -508,7 +508,8 @@ export function StaffPanel() {
       }
     }
 
-    toast.success(`Role ${user.name} diubah menjadi ${newRole.toUpperCase()}`);
+    const roleLabel = ROLES.find((r) => r.value === newRole)?.label || newRole;
+    toast.success(`Peran ${user.name} berhasil diubah menjadi ${roleLabel}`);
   };
 
   const handleQuickToggleActive = (user: UnifiedUser) => {
@@ -517,7 +518,7 @@ export function StaffPanel() {
     const currentEmail = (profile?.email || "").trim().toLowerCase();
 
     if (currentEmail && cleanEmail === currentEmail && !nextActive) {
-      toast.error("Tidak dapat menonaktifkan akun Anda sendiri saat sedang login!");
+      toast.error("Tidak dapat menonaktifkan akun Anda sendiri saat sedang masuk!");
       return;
     }
 
@@ -579,7 +580,7 @@ export function StaffPanel() {
         <div className="glow-card p-3 border-amber-500/20 bg-amber-500/5">
           <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
             <BadgeCheck className="size-3.5" />
-            <span className="text-[11px] font-semibold">Staff</span>
+            <span className="text-[11px] font-semibold">Staf</span>
           </div>
           <p className="mt-1 text-xl font-black">{stats.staff}</p>
           <p className="text-[10px] text-muted-foreground">Kasir & Pesanan</p>
@@ -590,7 +591,7 @@ export function StaffPanel() {
             <span className="text-[11px] font-semibold">Pelanggan</span>
           </div>
           <p className="mt-1 text-xl font-black">{stats.users}</p>
-          <p className="text-[10px] text-muted-foreground">User aplikasi</p>
+          <p className="text-[10px] text-muted-foreground">Pengguna aplikasi</p>
         </div>
         <div className="glow-card p-3">
           <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -598,7 +599,7 @@ export function StaffPanel() {
             <span className="text-[11px] font-semibold">Total Tim</span>
           </div>
           <p className="mt-1 text-xl font-black">{stats.owners + stats.admins + stats.staff}</p>
-          <p className="text-[10px] text-muted-foreground">Staff & Manajemen</p>
+          <p className="text-[10px] text-muted-foreground">Staf & Manajemen</p>
         </div>
       </div>
 
@@ -610,8 +611,8 @@ export function StaffPanel() {
             title={editingUserId ? "Edit Pengguna & Kredensial" : "Tambah Pengguna Baru"}
             description={
               editingUserId
-                ? "Perbarui informasi akun, role hak akses, dan kata sandi login pengguna."
-                : "Buat akun pengguna baru lengkap dengan email dan kata sandi untuk login."
+                ? "Perbarui informasi akun, peran hak akses, dan kata sandi masuk pengguna."
+                : "Buat akun pengguna baru lengkap dengan alamat email dan kata sandi untuk masuk."
             }
           >
             {editingUserId && (
@@ -645,10 +646,10 @@ export function StaffPanel() {
                   <KeyRound className="size-4 text-primary" />
                   <div>
                     <p className="text-xs font-bold text-foreground">
-                      Kredensial Login (Email & Password)
+                      Kredensial Masuk (Email & Kata Sandi)
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      Email dan kata sandi yang digunakan pengguna untuk masuk ke aplikasi
+                      Alamat email dan kata sandi yang digunakan pengguna untuk masuk ke aplikasi
                     </p>
                   </div>
                 </div>
@@ -656,7 +657,7 @@ export function StaffPanel() {
                 {/* Email Input */}
                 <label className="block text-xs font-medium text-foreground">
                   <span className="flex items-center gap-1">
-                    <Mail className="size-3 text-primary" /> Alamat Email Login{" "}
+                    <Mail className="size-3 text-primary" /> Alamat Email Masuk{" "}
                     <span className="text-destructive">*</span>
                   </span>
                   <input
@@ -672,7 +673,7 @@ export function StaffPanel() {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-medium text-foreground flex items-center gap-1">
-                      <Lock className="size-3 text-primary" /> Kata Sandi / Password{" "}
+                      <Lock className="size-3 text-primary" /> Kata Sandi{" "}
                       {editingUserId ? (
                         <span className="text-[10px] text-muted-foreground font-normal">
                           (Opsional jika tidak diubah)
@@ -696,8 +697,8 @@ export function StaffPanel() {
                       type={showPassword ? "text" : "password"}
                       placeholder={
                         editingUserId
-                          ? "Biarkan kosong jika tidak ingin mengubah sandi"
-                          : "Minimal 4 karakter (cth: nanami123)"
+                          ? "Biarkan kosong jika tidak ingin mengubah kata sandi"
+                          : "Minimal 4 karakter (contoh: nanami123)"
                       }
                       className={`${fieldClass} bg-background pr-10`}
                     />
@@ -705,7 +706,7 @@ export function StaffPanel() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                      title={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                      title={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                     >
                       {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
@@ -716,7 +717,7 @@ export function StaffPanel() {
                     </p>
                   ) : (
                     <p className="text-[10px] text-muted-foreground">
-                      Kata sandi wajib diisi agar akun pengguna dapat langsung login ke aplikasi.
+                      Kata sandi wajib diisi agar akun pengguna dapat langsung masuk ke aplikasi.
                     </p>
                   )}
                 </div>
@@ -739,7 +740,7 @@ export function StaffPanel() {
               {/* Role Selection */}
               <div className="space-y-1.5 pt-1">
                 <span className="block text-xs font-medium text-muted-foreground">
-                  Pilih Role / Hak Akses <span className="text-destructive">*</span>
+                  Pilih Peran / Hak Akses <span className="text-destructive">*</span>
                 </span>
                 <div className="space-y-1.5">
                   {ROLES.map((r) => {
@@ -780,7 +781,7 @@ export function StaffPanel() {
                 <div>
                   <p className="text-xs font-semibold">Status Akun</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {isActive ? "Akun aktif dan diizinkan login" : "Akun nonaktif / ditangguhkan"}
+                    {isActive ? "Akun aktif dan diizinkan masuk" : "Akun nonaktif / ditangguhkan"}
                   </p>
                 </div>
                 <button
@@ -810,7 +811,7 @@ export function StaffPanel() {
                     </>
                   ) : (
                     <>
-                      <UserPlus className="size-4" /> Buat Akun dengan Email & Password
+                      <UserPlus className="size-4" /> Buat Akun Baru
                     </>
                   )}
                 </button>
@@ -842,7 +843,7 @@ export function StaffPanel() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Cari berdasarkan nama, email, atau telepon..."
+                  placeholder="Cari berdasarkan nama, email, atau nomor telepon..."
                   className="w-full rounded-xl border border-input bg-secondary/30 pl-9 pr-8 py-2 text-xs outline-none focus:border-primary"
                 />
                 {search && (
@@ -850,6 +851,7 @@ export function StaffPanel() {
                     type="button"
                     onClick={() => setSearch("")}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    title="Hapus pencarian"
                   >
                     <X className="size-3.5" />
                   </button>
@@ -914,7 +916,7 @@ export function StaffPanel() {
                       : "bg-secondary/40 text-muted-foreground hover:bg-secondary/70"
                   }`}
                 >
-                  Staff ({stats.staff})
+                  Staf ({stats.staff})
                 </button>
                 <button
                   type="button"
@@ -936,8 +938,8 @@ export function StaffPanel() {
                     className="rounded-lg border border-input bg-secondary/40 px-2 py-1 text-[11px] font-semibold outline-none cursor-pointer"
                   >
                     <option value="all">Semua Status</option>
-                    <option value="active">Aktif Saja</option>
-                    <option value="inactive">Nonaktif Saja</option>
+                    <option value="active">Hanya Aktif</option>
+                    <option value="inactive">Hanya Nonaktif</option>
                   </select>
                 </div>
               </div>
@@ -987,7 +989,7 @@ export function StaffPanel() {
                           )}
                           {u.points !== undefined && u.points > 0 && (
                             <span className="inline-flex items-center gap-1 font-semibold text-primary text-[11px]">
-                              ★ {u.points} pts
+                              ★ {u.points} poin
                             </span>
                           )}
                         </div>
@@ -1023,9 +1025,9 @@ export function StaffPanel() {
                                 setShowModalPassword(false);
                               }}
                               className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 text-[10px] text-amber-600 dark:text-amber-400 font-bold cursor-pointer transition-colors"
-                              title="Klik untuk mengatur kata sandi login"
+                              title="Klik untuk mengatur kata sandi masuk"
                             >
-                              <AlertCircle className="size-2.5" /> Setel Sandi Login
+                              <AlertCircle className="size-2.5" /> Atur Kata Sandi Masuk
                             </button>
                           )}
                         </div>
@@ -1039,7 +1041,7 @@ export function StaffPanel() {
                         value={u.role}
                         disabled={isCurrentSelf}
                         onChange={(e) => handleQuickRoleChange(u, e.target.value as UserRole)}
-                        aria-label={`Ubah role ${u.name}`}
+                        aria-label={`Ubah peran untuk ${u.name}`}
                         className="rounded-lg border border-input bg-card px-2 py-1 text-xs font-semibold outline-none disabled:opacity-50 cursor-pointer"
                       >
                         {ROLES.map((r) => (
@@ -1058,8 +1060,8 @@ export function StaffPanel() {
                           isCurrentSelf
                             ? "Akun sendiri tidak dapat dinonaktifkan"
                             : u.active
-                              ? "Klik untuk menonaktifkan"
-                              : "Klik untuk mengaktifkan"
+                              ? "Klik untuk menonaktifkan akun"
+                              : "Klik untuk mengaktifkan akun"
                         }
                         className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition-colors disabled:opacity-50 cursor-pointer ${
                           u.active
@@ -1079,9 +1081,9 @@ export function StaffPanel() {
                             setModalNewPassword("");
                             setShowModalPassword(false);
                           }}
-                          aria-label={`Ganti sandi ${u.name}`}
+                          aria-label={`Ganti kata sandi ${u.name}`}
                           className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
-                          title="Ubah / Setel Kata Sandi Login"
+                          title="Ubah / Atur Kata Sandi Masuk"
                         >
                           <Key className="size-4" />
                         </button>
@@ -1090,7 +1092,7 @@ export function StaffPanel() {
                           onClick={() => startEdit(u)}
                           aria-label={`Edit ${u.name}`}
                           className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
-                          title="Edit Pengguna"
+                          title="Edit Data Pengguna"
                         >
                           <Pencil className="size-4" />
                         </button>
@@ -1098,7 +1100,7 @@ export function StaffPanel() {
                           type="button"
                           disabled={isCurrentSelf}
                           onClick={() => handleDelete(u)}
-                          aria-label={`Delete ${u.name}`}
+                          aria-label={`Hapus ${u.name}`}
                           className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-25 cursor-pointer"
                           title={
                             isCurrentSelf
@@ -1121,7 +1123,7 @@ export function StaffPanel() {
                     Tidak ada pengguna ditemukan
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Coba ubah kata kunci pencarian atau filter role di atas.
+                    Coba ubah kata kunci pencarian atau filter di atas.
                   </p>
                   {(search || roleFilter !== "all" || statusFilter !== "all") && (
                     <button
@@ -1133,7 +1135,7 @@ export function StaffPanel() {
                       }}
                       className="mt-3 inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1 text-xs font-semibold hover:bg-secondary/40 cursor-pointer"
                     >
-                      Reset Filter
+                      Atur Ulang Filter
                     </button>
                   )}
                 </div>
@@ -1154,7 +1156,7 @@ export function StaffPanel() {
               <KeyRound className="size-5 text-primary" /> Ubah Kata Sandi Akun
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Atur kata sandi baru untuk login pengguna{" "}
+              Atur kata sandi baru untuk masuk akun pengguna{" "}
               <strong className="text-foreground">{passwordModalUser?.name}</strong> (
               {passwordModalUser?.email}).
             </DialogDescription>
@@ -1163,13 +1165,14 @@ export function StaffPanel() {
           <div className="space-y-4 py-2">
             <div className="rounded-xl border border-border bg-secondary/30 p-3 text-xs space-y-1">
               <p className="text-muted-foreground">
-                Email Login:{" "}
+                Email Masuk:{" "}
                 <span className="font-semibold text-foreground">{passwordModalUser?.email}</span>
               </p>
               <p className="text-muted-foreground">
                 Peran Akun:{" "}
                 <span className="font-semibold text-foreground uppercase">
-                  {passwordModalUser?.role}
+                  {ROLES.find((r) => r.value === passwordModalUser?.role)?.label ||
+                    passwordModalUser?.role}
                 </span>
               </p>
             </div>
@@ -1199,13 +1202,13 @@ export function StaffPanel() {
                   type="button"
                   onClick={() => setShowModalPassword(!showModalPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                  title={showModalPassword ? "Sembunyikan" : "Tampilkan"}
+                  title={showModalPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                 >
                   {showModalPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
               <p className="text-[10px] text-muted-foreground">
-                Setelah disimpan, pengguna dapat langsung login menggunakan email dan kata sandi
+                Setelah disimpan, pengguna dapat langsung masuk menggunakan email dan kata sandi
                 baru ini.
               </p>
             </div>
@@ -1224,7 +1227,7 @@ export function StaffPanel() {
                 onClick={handleQuickPasswordUpdate}
                 className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-40 cursor-pointer"
               >
-                Simpan Kata Sandi
+                Simpan Kata Sandi Baru
               </button>
             </div>
           </div>
