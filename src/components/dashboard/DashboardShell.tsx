@@ -57,7 +57,7 @@ const OWNER_TOOLS: NavItem[] = [
   { to: "/owner/preview", label: "Live Preview", icon: Smartphone },
   { to: "/owner/vouchers", label: "Vouchers & Promos", icon: Ticket },
   { to: "/owner/customers", label: "Customers", icon: Users },
-  { to: "/owner/staff", label: "Akun & Staf", icon: ShieldCheck },
+  { to: "/owner/staff", label: "Staff & Accounts", icon: ShieldCheck },
   { to: "/owner/outlets", label: "Outlets", icon: Store },
   { to: "/owner/shipping", label: "Delivery Rates", icon: Truck },
   { to: "/owner/whatsapp", label: "WhatsApp Settings", icon: MessageSquare },
@@ -104,10 +104,10 @@ export function DashboardShell({
       ? [{ title: "Kitchen Staff", items: STAFF_TOOLS }]
       : isOwnerView
         ? [
-            { title: "Tools Owner", items: OWNER_TOOLS },
-            { title: "Tools Admin", items: ADMIN_TOOLS },
+            { title: "Owner Tools", items: OWNER_TOOLS },
+            { title: "Admin Tools", items: ADMIN_TOOLS },
           ]
-        : [{ title: "Tools Admin", items: ADMIN_TOOLS }];
+        : [{ title: "Admin Tools", items: ADMIN_TOOLS }];
 
   const flatNav = sections.flatMap((s) => s.items);
 
@@ -151,7 +151,7 @@ export function DashboardShell({
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold leading-tight">{storeName}</p>
-                <p className="text-[11px] text-muted-foreground">Panel {roleLabel}</p>
+                <p className="text-[11px] text-muted-foreground">{roleLabel} Panel</p>
               </div>
             )}
           </Link>
@@ -278,7 +278,7 @@ export function DashboardShell({
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-bold leading-tight">{storeName}</p>
-              <p className="text-[11px] text-muted-foreground">Panel {roleLabel}</p>
+              <p className="text-[11px] text-muted-foreground">{roleLabel} Panel</p>
             </div>
           </div>
           <button
