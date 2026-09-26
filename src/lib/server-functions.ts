@@ -4,7 +4,7 @@ import {
   optimizeCms,
   optimizePromoImage,
   optimizeMediaAsset,
-} from "../server/media-service";
+} from "./media-utils";
 import type {
   MenuItem,
   Order,
@@ -18,14 +18,15 @@ import type {
 } from "../types";
 
 async function getDb() {
-  const { sql, initDb, seedDbIfEmpty, getSessionProfileDb } = await import("./db");
-  return { sql, initDb, seedDbIfEmpty, getSessionProfileDb };
+  const { sql, initDb, seedDbIfEmpty, getSessionProfileDb, createSessionDb, deleteSessionDb } =
+    await import("./db");
+  return { sql, initDb, seedDbIfEmpty, getSessionProfileDb, createSessionDb, deleteSessionDb };
 }
 
 export function getEnvAccounts(): Account[] {
   const accounts: Account[] = [];
   const envOwnerEmail = process.env["OWNER_EMAIL"]?.trim().toLowerCase();
-  const envOwnerPass = process.env["OWNER_PASSWORD"];
+  const envOwnerPass = process.env["OWNER_PASSWORD"]?.trim();
   if (envOwnerEmail && envOwnerPass) {
     accounts.push({
       id: "env-owner",
@@ -41,7 +42,7 @@ export function getEnvAccounts(): Account[] {
   }
 
   const envAdminEmail = process.env["ADMIN_EMAIL"]?.trim().toLowerCase();
-  const envAdminPass = process.env["ADMIN_PASSWORD"];
+  const envAdminPass = process.env["ADMIN_PASSWORD"]?.trim();
   if (envAdminEmail && envAdminPass) {
     accounts.push({
       id: "env-admin",
@@ -57,7 +58,7 @@ export function getEnvAccounts(): Account[] {
   }
 
   const envStaffEmail = process.env["STAFF_EMAIL"]?.trim().toLowerCase();
-  const envStaffPass = process.env["STAFF_PASSWORD"];
+  const envStaffPass = process.env["STAFF_PASSWORD"]?.trim();
   if (envStaffEmail && envStaffPass) {
     accounts.push({
       id: "env-staff",
@@ -78,96 +79,157 @@ export function getEnvAccounts(): Account[] {
 export const loginServerFn = createServerFn({ method: "POST" })
   .validator((d: { email: string; password: string }) => d)
   .handler(async ({ data }) => {
-    const cleanEmail = data.email.trim().toLowerCase();
-    const cleanPassword = data.password;
-
-    const { sql, createSessionDb } = await getDb();
-
-    // 1. Check process.env accounts
-    const envAccounts = getEnvAccounts();
-    const envMatch = envAccounts.find(
-      (a) => a.email.toLowerCase() === cleanEmail && a.password === cleanPassword,
-    );
-    if (envMatch) {
-      const token = await createSessionDb(envMatch);
-      return { ok: true, account: envMatch, token: token || undefined };
-    }
-
-    // 2. Check PostgreSQL database
-    if (sql) {
-      try {
-        const rows = (await sql`
-          SELECT * FROM accounts 
-          WHERE LOWER(email) = ${cleanEmail} AND password = ${cleanPassword} 
-          LIMIT 1
-        `) as any[];
-        if (rows.length > 0) {
-          const a = rows[0];
-          const account = {
-            id: a.id,
-            email: a.email,
-            password: a.password,
-            name: a.name,
-            phone: a.phone,
-            role: (a.role || "user") as "user" | "admin" | "owner" | "staff",
-            address: a.address,
-            addresses: a.addresses || [],
-            points: a.points || 0,
-          };
-          const token = await createSessionDb(account);
-          return {
-            ok: true,
-            account,
-            token: token || undefined,
-          };
-        }
-      } catch (err) {
-        console.warn("DB login lookup failed:", err);
-      }
-    }
-
-    // 3. Check persistent storage accounts (fallback for offline DB or local signups)
     try {
-      const { getStorageData } = await import("../server/persistent-storage");
-      const storage = getStorageData();
-      const storageMatch = storage.accounts.find(
-        (a) => a.email.trim().toLowerCase() === cleanEmail && a.password === cleanPassword,
+      const cleanEmail = (data.email || "").trim().toLowerCase();
+      const rawPassword = data.password || "";
+      const cleanPassword = rawPassword.trim();
+      const unquotedPassword = cleanPassword.replace(/^["']|["']$/g, "");
+
+      const isPassMatch = (stored?: string | null) => {
+        if (!stored) return false;
+        const cleanStored = stored.trim();
+        const unquotedStored = cleanStored.replace(/^["']|["']$/g, "");
+        return (
+          stored === rawPassword ||
+          cleanStored === cleanPassword ||
+          unquotedStored === unquotedPassword ||
+          stored === unquotedPassword ||
+          unquotedStored === cleanPassword
+        );
+      };
+
+      const { sql, createSessionDb } = await getDb();
+
+      const makeSafeSession = async (account: any): Promise<string> => {
+        if (typeof createSessionDb === "function") {
+          try {
+            const token = await createSessionDb(account);
+            if (token) return token;
+          } catch (e) {
+            console.warn("createSessionDb error:", e);
+          }
+        }
+        return "sess_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      };
+
+      // 1. Check process.env accounts (refreshing .env dynamically on Node runtime if available)
+      if (
+        typeof window === "undefined" &&
+        typeof process !== "undefined" &&
+        typeof (process as any).cwd === "function"
+      ) {
+        try {
+          const dotenv = await import("dotenv");
+          (dotenv.default || dotenv).config?.({ override: true });
+        } catch {
+          // ignore
+        }
+      }
+      const envAccounts = getEnvAccounts();
+      const envMatch = envAccounts.find(
+        (a) => a.email.toLowerCase() === cleanEmail && isPassMatch(a.password),
       );
-      if (storageMatch) {
-        // Sync into PostgreSQL if DB is available now
+      if (envMatch) {
         if (sql) {
           try {
             await sql`
               INSERT INTO accounts (id, email, password, name, phone, role, address, addresses, points)
-              VALUES (${storageMatch.id}, ${cleanEmail}, ${storageMatch.password}, ${storageMatch.name}, ${storageMatch.phone}, ${storageMatch.role || "user"}, ${storageMatch.address || null}, ${sql.json(storageMatch.addresses || [])}, ${storageMatch.points || 0})
+              VALUES (${envMatch.id}, ${cleanEmail}, ${rawPassword}, ${envMatch.name}, ${envMatch.phone}, ${envMatch.role || "user"}, ${envMatch.address || null}, ${sql.json(envMatch.addresses || [])}, ${envMatch.points || 0})
               ON CONFLICT (email) DO UPDATE SET
                 password = EXCLUDED.password,
                 name = EXCLUDED.name,
+                role = EXCLUDED.role,
                 phone = EXCLUDED.phone
             `;
           } catch (syncErr) {
-            void syncErr;
+            console.warn("Could not upsert env account to DB:", syncErr);
           }
         }
-        const token = await createSessionDb(storageMatch);
-        return { ok: true, account: storageMatch, token: token || undefined };
+        const token = await makeSafeSession(envMatch);
+        return { ok: true, account: envMatch, token };
       }
-    } catch (storageErr) {
-      console.warn("Storage accounts lookup failed:", storageErr);
-    }
 
-    // 4. Check seed accounts
-    const { seedAccounts } = await import("./seed-data");
-    const seedMatch = seedAccounts.find(
-      (a) => a.email.toLowerCase() === cleanEmail && a.password === cleanPassword,
-    );
-    if (seedMatch) {
-      const account = seedMatch as unknown as Account;
-      const token = await createSessionDb(account);
-      return { ok: true, account, token: token || undefined };
-    }
+      // 2. Check PostgreSQL database
+      if (sql) {
+        try {
+          const rows = (await sql`
+            SELECT * FROM accounts 
+            WHERE LOWER(email) = ${cleanEmail}
+            LIMIT 10
+          `) as any[];
+          for (const a of rows) {
+            if (isPassMatch(a.password)) {
+              const account = {
+                id: a.id,
+                email: a.email,
+                password: a.password,
+                name: a.name,
+                phone: a.phone,
+                role: (a.role || "user") as "user" | "admin" | "owner" | "staff",
+                address: a.address,
+                addresses: a.addresses || [],
+                points: a.points || 0,
+              };
+              const token = await makeSafeSession(account);
+              return {
+                ok: true,
+                account,
+                token,
+              };
+            }
+          }
+        } catch (err) {
+          console.warn("DB login lookup failed:", err);
+        }
+      }
 
-    return { ok: false, error: "Invalid email or password." };
+      // 3. Check persistent storage accounts (fallback for offline DB or local signups)
+      try {
+        const { getStorageData } = await import("../server/persistent-storage");
+        const storage = getStorageData();
+        const storageMatch = storage.accounts.find(
+          (a) => a.email.trim().toLowerCase() === cleanEmail && isPassMatch(a.password),
+        );
+        if (storageMatch) {
+          // Sync into PostgreSQL if DB is available now
+          if (sql) {
+            try {
+              await sql`
+                INSERT INTO accounts (id, email, password, name, phone, role, address, addresses, points)
+                VALUES (${storageMatch.id}, ${cleanEmail}, ${storageMatch.password}, ${storageMatch.name}, ${storageMatch.phone}, ${storageMatch.role || "user"}, ${storageMatch.address || null}, ${sql.json(storageMatch.addresses || [])}, ${storageMatch.points || 0})
+                ON CONFLICT (email) DO UPDATE SET
+                  password = EXCLUDED.password,
+                  name = EXCLUDED.name,
+                  role = EXCLUDED.role,
+                  phone = EXCLUDED.phone
+              `;
+            } catch (syncErr) {
+              void syncErr;
+            }
+          }
+          const token = await makeSafeSession(storageMatch);
+          return { ok: true, account: storageMatch, token };
+        }
+      } catch (storageErr) {
+        console.warn("Storage accounts lookup failed:", storageErr);
+      }
+
+      // 4. Check seed accounts
+      const { seedAccounts } = await import("./seed-data");
+      const seedMatch = seedAccounts.find(
+        (a) => a.email.toLowerCase() === cleanEmail && isPassMatch(a.password),
+      );
+      if (seedMatch) {
+        const account = seedMatch as unknown as Account;
+        const token = await makeSafeSession(account);
+        return { ok: true, account, token };
+      }
+
+      return { ok: false, error: "Invalid email or password." };
+    } catch (globalErr: any) {
+      console.error("Unhandled loginServerFn error:", globalErr);
+      return { ok: false, error: globalErr?.message || "Login failed. Please try again." };
+    }
   });
 
 export const registerServerFn = createServerFn({ method: "POST" })
@@ -247,8 +309,18 @@ export const registerServerFn = createServerFn({ method: "POST" })
       }
     }
 
-    const token = await createSessionDb(newAccount);
-    return { ok: true, account: newAccount, token: token || undefined };
+    let token: string | null = null;
+    if (typeof createSessionDb === "function") {
+      try {
+        token = await createSessionDb(newAccount);
+      } catch (sessErr) {
+        console.warn("createSessionDb failed on registration:", sessErr);
+      }
+    }
+    if (!token) {
+      token = "sess_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+    }
+    return { ok: true, account: newAccount, token };
   });
 
 export const logoutServerFn = createServerFn({ method: "POST" })

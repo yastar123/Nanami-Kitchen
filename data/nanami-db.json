@@ -367,6 +367,40 @@
   ],
   "orders": [
     {
+      "id": "ord-audit-1790390233839",
+      "code": "NK-AUDIT-3041",
+      "createdAt": "2026-09-26T02:37:13.839Z",
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "menuItemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "price": 95,
+          "qty": 2,
+          "selectedOptions": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "specialRequest": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "deliveryFee": 25,
+      "vat": 37.5,
+      "total": 312.5,
+      "status": "cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "customer": {
+        "name": "Audit Customer",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658
+      }
+    },
+    {
       "id": "ord-audit-1790388786262",
       "code": "NK-AUDIT-2176",
       "createdAt": "2026-09-26T02:13:06.262Z",
@@ -905,7 +939,7 @@
     {
       "id": "test-order-99",
       "code": "ORD-TEST-99",
-      "createdAt": "2026-09-19T08:26:11.813Z",
+      "createdAt": "2026-09-26T02:42:55.614Z",
       "type": "delivery",
       "lines": [
         {
@@ -1281,6 +1315,17 @@
       "address": "",
       "addresses": [],
       "points": 0
+    },
+    {
+      "id": "cust-qonx7aqmuhs49u4",
+      "name": "Audit User",
+      "email": "audit_user_1790390233804@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
     }
   ],
   "staff": [
@@ -1291,7 +1336,7 @@
       "phone": "0812999888",
       "role": "staff",
       "active": true,
-      "createdAt": 1789806371818
+      "createdAt": 1790390575623
     },
     {
       "id": "s1",
@@ -1499,6 +1544,46 @@
       "role": "user",
       "createdAt": 1790388786259,
       "expiresAt": 1792980786259
+    },
+    {
+      "id": "sess_9d9e2pno6w4muhs3va3",
+      "accountId": "env-owner",
+      "email": "owner@nanami.id",
+      "role": "owner",
+      "createdAt": 1790390214947,
+      "expiresAt": 1792982214939
+    },
+    {
+      "id": "sess_8yha2d9vx3nmuhs3vn2",
+      "accountId": "env-owner",
+      "email": "owner@nanami.id",
+      "role": "owner",
+      "createdAt": 1790390215406,
+      "expiresAt": 1792982215406
+    },
+    {
+      "id": "sess_p79fboxb3h9muhs49uu",
+      "accountId": "cust-qonx7aqmuhs49u4",
+      "email": "audit_user_1790390233804@example.com",
+      "role": "user",
+      "createdAt": 1790390233830,
+      "expiresAt": 1792982233830
+    },
+    {
+      "id": "sess_yxy9ke2o1xjmuhs49v1",
+      "accountId": "cust-qonx7aqmuhs49u4",
+      "email": "audit_user_1790390233804@example.com",
+      "role": "user",
+      "createdAt": 1790390233837,
+      "expiresAt": 1792982233837
+    },
+    {
+      "id": "sess_tru6azw3cabmuhsbll5",
+      "accountId": "legacy-owner",
+      "email": "owner@nanamikitchen.com",
+      "role": "owner",
+      "createdAt": 1790390575625,
+      "expiresAt": 1792982575625
     }
   ]
 }

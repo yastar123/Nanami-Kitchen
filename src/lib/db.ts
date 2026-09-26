@@ -1,3 +1,4 @@
+import "dotenv/config";
 import postgres from "postgres";
 import type { State } from "../types";
 

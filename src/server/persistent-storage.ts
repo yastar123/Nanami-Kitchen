@@ -35,7 +35,18 @@ export interface StorageData {
   sessions?: UserSessionData[];
 }
 
-const DATA_DIR = path.resolve(process.cwd(), "data");
+const getCwd = () => {
+  try {
+    if (typeof process !== "undefined" && typeof process.cwd === "function") {
+      return process.cwd();
+    }
+  } catch {
+    // fallback
+  }
+  return ".";
+};
+
+const DATA_DIR = path.resolve(getCwd(), "data");
 const STORAGE_FILE = path.join(DATA_DIR, "nanami-db.json");
 
 let memoryState: StorageData | null = null;

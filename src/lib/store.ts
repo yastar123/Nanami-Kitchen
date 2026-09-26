@@ -805,9 +805,9 @@ export const actions = {
         return { ok: true, role };
       }
       return { ok: false, error: res.error || "Invalid email or password." };
-    } catch (err) {
+    } catch (err: any) {
       console.warn("Server login error:", err);
-      return { ok: false, error: "Login failed. Please try again." };
+      return { ok: false, error: err?.message || "Login failed. Please try again." };
     }
   },
   async loginAsDemo(role: "user" | "admin" | "owner" | "staff"): Promise<{

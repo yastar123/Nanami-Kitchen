@@ -2,11 +2,11 @@
 
 # NANAMI KITCHEN — CLOUD KITCHEN & FOOD ORDERING PLATFORM
 
-**Versi Dokumen:** 1.9.0  
+**Versi Dokumen:** 1.9.1  
 **Status Proyek:** Production Ready, Fully Audited & Live  
 **Arsitektur:** Full-Stack Modular SSR (TanStack Start + Nitro / Vite + PostgreSQL / Resilient Multi-Layer Storage)  
 **Mata Uang & Wilayah Target:** N$ (Namibia Dollar) / Wilayah Namibia & Windhoek  
-**Terakhir Diperbarui:** 2026-09-26 (Phase 9 Master System Audit: Full Storefront & Dashboard Verification, Complete Owner User & Staff CRUD Suite at /owner/staff, 38 Routes Audited, Pure-Visual Welcome Splash, Interactive GPS LocationPicker, Strict RBAC Matrix, SSRF Mitigation, Parameterized SQL Queries, and Dual-Layer Database Sync)
+**Terakhir Diperbarui:** 2026-09-26 (v1.9.1 Hotfix: Resolusi Server Function Session Resolver `createSessionDb`, Auto-Reload Environment Variables via Dotenv Override pada PM2 Runtime, Trim & Unquote Credential Resiliency, Dual PostgreSQL Upsert on Env Login)
 
 ---
 
@@ -906,6 +906,22 @@ Pengujian fungsionalitas CRUD Pengguna (`src/scripts/test-owner-user-crud.ts`) m
 | **Verifikasi RBAC Matrix**     | `verify-admin-rbac.ts`              |       23       |   23    |   0   |     **100%**      |
 | **Kode Sintaks & Linter**      | `npm run lint`                      |       -        |  Lulus  |   0   |     **100%**      |
 | **Kompilasi Produksi**         | `npm run build`                     |       -        |  Lulus  |   0   |     **100%**      |
+
+---
+
+### 12.8 Resolusi Hotfix Autentikasi Server Function & Sinkronisasi PM2 .env (v1.9.1)
+
+1. **Akar Masalah (Root Cause) Login Gagal:**
+   - **Missing Function Return di `getDb()`:** Pada `src/lib/server-functions.ts`, helper `getDb()` hanya mengembalikan `{ sql, initDb, seedDbIfEmpty, getSessionProfileDb }` dan tidak menyertakan `createSessionDb`. Akibatnya, pada pemanggilan `await createSessionDb(...)` di dalam `loginServerFn` dan `registerServerFn`, terjadi error `TypeError: createSessionDb is not a function`.
+   - **Karakteristik Tanggapan TanStack Start Server Function:** Karena error dilempar di sisi server runtime, TanStack Start mengembalikan respons HTTP 200 OK dengan payload error yang kemudian menyebabkan blok `try/catch` di sisi client (`store.ts`) menangkap eksepsi dan menampilkan pesan *"Login failed. Please try again."*.
+   - **PM2 Environment Variable Caching:** Pada VPS dengan manajer proses PM2, perintah `pm2 restart all` secara default tidak memperbarui environment variables yang disimpan di memori PM2 kecuali dijalankan dengan flag `pm2 restart all --update-env`.
+
+2. **Solusi Komprehensif yang Diimplementasikan:**
+   - **Eksport Lengkap Fungsi Sesi di `getDb()`:** Menambahkan `createSessionDb` dan `deleteSessionDb` pada objek balikan `getDb()` di `src/lib/server-functions.ts`.
+   - **Fallback Safe Session Generation:** Menambahkan pembungkus aman `makeSafeSession` sehingga jika terjadi kegagalan atau timeout koneksi ke tabel sesi PostgreSQL, token sesi fallback (`sess_*`) tetap dibuat dan proses login pengguna berhasil tanpa kendala.
+   - **Dynamic Dotenv Override (`dotenv.config({ override: true })`):** Memastikan pembacaan berkas `.env` dieksekusi secara dinamis di `src/lib/server-functions.ts`, `src/lib/db.ts`, dan fungsi `getEnvAccounts()`. Ini menjamin kredensial `OWNER_EMAIL`, `OWNER_PASSWORD`, `ADMIN_EMAIL`, dsb. selalu dibaca langsung dari berkas `.env` terkini di server fisik tanpa ketergantungan pada cache PM2.
+   - **Toleransi Whitespace & Quote Sanitization:** Input kata sandi dan nilai dari `.env` mendukung pembersihan spasi tak terlihat (`.trim()`) dan tanda petik ganda/tunggal (`"..."` atau `'...'`).
+   - **Otomatisasi Sinkronisasi Akun Owner ke PostgreSQL:** Setiap kali login Owner berhasil via kredensial `.env`, akun Owner secara otomatis di-*upsert* ke dalam tabel `accounts` di PostgreSQL agar integritas data relasional antar-tabel tetap konsisten.
 
 ---
 

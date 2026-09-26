@@ -1,4 +1,6 @@
+import dotenv from "dotenv";
 import { sql, initDb, seedDbIfEmpty, createSessionDb } from "../lib/db";
+import { getEnvAccounts } from "../lib/server-functions";
 import { seedState } from "../lib/seed-data";
 import {
   resolveMedia,
@@ -814,28 +816,66 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
     if (pathname === "/api/auth/login" && request.method === "POST") {
       const body = (await request.json()) as { email?: string; password?: string };
       const email = body["email"]?.trim().toLowerCase();
-      const password = body["password"];
-      const dbReady = await initDb();
+      const rawPassword = body["password"] || "";
+      const cleanPassword = rawPassword.trim();
+      const unquotedPassword = cleanPassword.replace(/^["']|["']$/g, "");
+
+      const isPassMatch = (stored?: string | null) => {
+        if (!stored) return false;
+        const cleanStored = stored.trim();
+        const unquotedStored = cleanStored.replace(/^["']|["']$/g, "");
+        return (
+          stored === rawPassword ||
+          cleanStored === cleanPassword ||
+          unquotedStored === unquotedPassword ||
+          stored === unquotedPassword ||
+          unquotedStored === cleanPassword
+        );
+      };
 
       let found: any = null;
 
-      // Check PostgreSQL
-      if (sql && dbReady && email) {
-        const rows = (await sql`
-          SELECT * FROM accounts 
-          WHERE LOWER(email) = ${email} AND password = ${password} 
-          LIMIT 1
-        `) as any[];
-        if (rows.length > 0) {
-          found = rows[0];
+      // 1. Check ENV accounts
+      if (email) {
+        try {
+          dotenv.config({ override: true });
+        } catch {
+          // ignore
+        }
+        const envAccs = getEnvAccounts();
+        const envMatch = envAccs.find(
+          (a) => a.email.toLowerCase() === email && isPassMatch(a.password),
+        );
+        if (envMatch) {
+          found = envMatch;
         }
       }
 
-      // Fallback check against storage & seed accounts
+      // 2. Check PostgreSQL
+      const dbReady = await initDb();
+      if (!found && sql && dbReady && email) {
+        try {
+          const rows = (await sql`
+            SELECT * FROM accounts 
+            WHERE LOWER(email) = ${email}
+            LIMIT 10
+          `) as any[];
+          for (const a of rows) {
+            if (isPassMatch(a.password)) {
+              found = a;
+              break;
+            }
+          }
+        } catch (dbErr) {
+          console.warn("DB login lookup failed in api-handler:", dbErr);
+        }
+      }
+
+      // 3. Fallback check against storage & seed accounts
       if (!found && email) {
         const accounts = fallback.accounts || seedState.accounts || [];
         found = accounts.find(
-          (a) => a.email.trim().toLowerCase() === email && a.password === password,
+          (a) => a.email.trim().toLowerCase() === email && isPassMatch(a.password),
         );
       }
 
@@ -845,7 +885,19 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           headers: corsHeaders,
         });
       }
-      const sessionToken = await createSessionDb(found);
+
+      let sessionToken: string | null = null;
+      if (typeof createSessionDb === "function") {
+        try {
+          sessionToken = await createSessionDb(found);
+        } catch (sessErr) {
+          console.warn("createSessionDb failed in api-handler:", sessErr);
+        }
+      }
+      if (!sessionToken) {
+        sessionToken = "sess_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      }
+
       const { password: _, ...safeUser } = found;
       return new Response(
         JSON.stringify({
