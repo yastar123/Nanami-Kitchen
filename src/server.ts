@@ -59,8 +59,27 @@ export default {
 
       // 2. Fall back to SSR handler
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const rawResponse = await handler.fetch(request, env, ctx);
+      const response = await normalizeCatastrophicSsrResponse(rawResponse);
+
+      // Prevent browsers and proxies from caching HTML or service worker with stale chunk hashes
+      const url = new URL(request.url);
+      const isHtml = response.headers.get("content-type")?.includes("text/html");
+      const isSw = url.pathname === "/sw.js";
+
+      if (isHtml || isSw) {
+        const headers = new Headers(response.headers);
+        headers.set("cache-control", "no-cache, no-store, must-revalidate, max-age=0");
+        headers.set("pragma", "no-cache");
+        headers.set("expires", "0");
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+      }
+
+      return response;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

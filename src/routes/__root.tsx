@@ -47,16 +47,17 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   // Automatic recovery for stale dynamic imports (e.g. Failed to fetch dynamically imported module)
-  useEffect(() => {
-    const isModuleError =
-      error?.message?.includes("Failed to fetch dynamically imported module") ||
-      error?.message?.includes("Importing a module script failed") ||
-      error?.message?.includes("error loading dynamically imported module");
+  const isModuleError =
+    error?.message?.includes("Failed to fetch dynamically imported module") ||
+    error?.message?.includes("Importing a module script failed") ||
+    error?.message?.includes("error loading dynamically imported module");
 
+  useEffect(() => {
     if (isModuleError && typeof window !== "undefined") {
-      const recovered = sessionStorage.getItem("nanami_chunk_recovered");
-      if (!recovered) {
-        sessionStorage.setItem("nanami_chunk_recovered", "true");
+      const lastAttempt = sessionStorage.getItem("nanami_chunk_attempt");
+      const now = Date.now();
+      if (!lastAttempt || now - Number(lastAttempt) > 6000) {
+        sessionStorage.setItem("nanami_chunk_attempt", now.toString());
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.getRegistrations().then((regs) => {
             regs.forEach((r) => r.unregister());
@@ -67,10 +68,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             keys.forEach((k) => caches.delete(k));
           });
         }
-        window.location.reload();
+        const url = new URL(window.location.href);
+        url.searchParams.set("_reload", Date.now().toString());
+        window.location.replace(url.toString());
       }
     }
-  }, [error]);
+  }, [error, isModuleError]);
 
   const handleClearCache = async () => {
     try {
@@ -99,7 +102,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       console.error(e);
     }
     if (typeof window !== "undefined") {
-      window.location.href = "/";
+      window.location.replace("/?_t=" + Date.now());
     }
   };
 
@@ -107,10 +110,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          {isModuleError ? "Versi Baru Aplikasi Tersedia" : "Halaman Tidak Dapat Dimuat"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          {isModuleError
+            ? "Server telah memperbarui versi kode aplikasi di VPS. Silakan muat ulang untuk mengambil script terbaru."
+            : "Terjadi kendala saat memuat halaman ini. Silakan coba muat ulang atau kembali ke beranda."}
         </p>
         {error?.message && (
           <div className="mt-3 rounded-lg border border-destructive/20 bg-destructive/10 p-2.5 text-left text-xs text-destructive">
@@ -120,13 +125,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         )}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => {
-              router.invalidate();
-              reset();
+            onClick={async () => {
+              if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (const reg of regs) await reg.unregister();
+              }
+              if (typeof caches !== "undefined") {
+                const keys = await caches.keys();
+                for (const key of keys) await caches.delete(key);
+              }
+              sessionStorage.clear();
+              window.location.replace(window.location.pathname + "?_t=" + Date.now());
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            {isModuleError ? "Muat Ulang Versi Terbaru" : "Coba Lagi"}
           </button>
           <button
             onClick={handleClearCache}
@@ -138,7 +151,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Kembali ke Beranda
           </a>
         </div>
       </div>
@@ -274,30 +287,19 @@ function RootComponent() {
   useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
 
-    // In development mode, unregister any service workers and clear cache to avoid stale SSR hydration mismatches
-    if (import.meta.env.DEV) {
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        for (const reg of regs) {
-          reg.unregister();
+    // Unregister any active service worker and clear stale caches to ensure browser always requests current Vite chunk bundles
+    navigator.serviceWorker.getRegistrations().then((regs) => {
+      for (const reg of regs) {
+        reg.unregister();
+      }
+    });
+    if (typeof caches !== "undefined") {
+      caches.keys().then((keys) => {
+        for (const key of keys) {
+          caches.delete(key);
         }
       });
-      if (typeof caches !== "undefined") {
-        caches.keys().then((keys) => {
-          for (const key of keys) {
-            caches.delete(key);
-          }
-        });
-      }
-      return;
     }
-
-    const register = () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-        /* offline support is optional */
-      });
-    };
-    if (document.readyState === "complete") register();
-    else window.addEventListener("load", register, { once: true });
   }, []);
 
   return (
