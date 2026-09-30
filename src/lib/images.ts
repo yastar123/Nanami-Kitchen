@@ -50,6 +50,10 @@ export function resolveMenuImage(src?: string | null, fallback: string = food1):
     return fallback;
   }
   const clean = src.trim();
+  // Filter out dummy/mock URLs from tests (e.g. photo-test-welcome-456.jpg, photo-audit-)
+  if (clean.includes("photo-test-") || clean.includes("photo-audit-")) {
+    return fallback;
+  }
   if (DEFAULT_FOOD_IMAGES[clean]) {
     return DEFAULT_FOOD_IMAGES[clean]!;
   }
@@ -64,7 +68,7 @@ export function handleImageError(
   fallback: string = food1,
 ) {
   const target = e.currentTarget as HTMLImageElement;
-  if (target.src !== fallback) {
+  if (target.src !== fallback && !target.src.endsWith(fallback)) {
     target.src = fallback;
   }
 }

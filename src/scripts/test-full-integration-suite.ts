@@ -207,6 +207,9 @@ async function runSuite() {
     "Welcome screen image remains unchanged when hero banner is reset",
   );
 
+  // Restore initial clean CMS so no dummy test URLs remain in database
+  await requestHttp("POST", "/api/cms", initialCms);
+
   // 7. Orders Creation & Calculation
   console.log("\n7. Testing Order Submission & Validation (/api/orders):");
   const testOrderCode = `NK-${Math.floor(1000 + Math.random() * 9000)}`;

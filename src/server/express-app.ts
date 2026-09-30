@@ -14,8 +14,8 @@ export const expressApp = express();
 
 // Middlewares
 expressApp.use(cors());
-expressApp.use(express.json());
-expressApp.use(express.urlencoded({ extended: true }));
+expressApp.use(express.json({ limit: "50mb" }));
+expressApp.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Media binary streaming with aggressive cache headers
 expressApp.get("/api/media/:id", async (req: Request, res: Response): Promise<void> => {
@@ -26,10 +26,14 @@ expressApp.get("/api/media/:id", async (req: Request, res: Response): Promise<vo
   }
   const resolved = await resolveMedia(id);
   if (!resolved) {
-    res.status(404).send("Media not found");
+    res.redirect(302, "/food-1.jpg");
     return;
   }
   if (resolved.redirectUrl) {
+    if (resolved.redirectUrl === req.originalUrl || resolved.redirectUrl === `/api/media/${id}`) {
+      res.redirect(302, "/food-1.jpg");
+      return;
+    }
     res.redirect(302, resolved.redirectUrl);
     return;
   }

@@ -445,6 +445,19 @@ async function runMasterAudit() {
       const foundMedia = storage.mediaAssets.some((m) => m.id === testMedia.id);
       record("Media", "Media asset stored in media catalog with menu linkage", foundMedia);
     }
+
+    // Clean up test records so dummy test URLs don't linger in DB
+    if (isPostgresLive && sql) {
+      await sql`DELETE FROM media_assets WHERE id = ${testMedia.id}`;
+      const existingCms = await sql`SELECT data FROM cms_content WHERE id = 'main_cms' LIMIT 1`;
+      if (existingCms.length && existingCms[0]?.data) {
+        const cleanData = { ...existingCms[0].data };
+        if (cleanData.heroImage === testHeroUrl) cleanData.heroImage = "";
+        if (cleanData.welcomeScreen?.imageUrl === testWelcomeUrl)
+          cleanData.welcomeScreen.imageUrl = "";
+        await sql`UPDATE cms_content SET data = ${sql.json(cleanData)} WHERE id = 'main_cms'`;
+      }
+    }
   } catch (err: any) {
     record("CMS", "CMS and Media operations", false, err.message);
   }

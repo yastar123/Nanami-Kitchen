@@ -88,15 +88,22 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       const resolved = await resolveMedia(mediaId);
 
       if (!resolved) {
-        return new Response("Media not found", { status: 404, headers: corsHeaders });
+        return new Response(null, {
+          status: 302,
+          headers: { ...corsHeaders, location: "/food-1.jpg" },
+        });
       }
 
       if (resolved.redirectUrl) {
+        const dest =
+          resolved.redirectUrl === pathname || resolved.redirectUrl === `/api/media/${mediaId}`
+            ? "/food-1.jpg"
+            : resolved.redirectUrl;
         return new Response(null, {
           status: 302,
           headers: {
             ...corsHeaders,
-            location: resolved.redirectUrl,
+            location: dest,
           },
         });
       }
@@ -704,9 +711,46 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         saveCmsStorage(cmsData);
         if (sql && dbReady) {
           try {
+            const existing =
+              (await sql`SELECT data FROM cms_content WHERE id = 'main_cms' LIMIT 1`) as any[];
+            const prevData = (existing[0]?.data as Partial<CmsContent>) || {};
+            const mergedCms: CmsContent = { ...prevData, ...cmsData };
+
+            if (cmsData.logoUrl === "/api/media/cms-logo" && prevData.logoUrl) {
+              mergedCms.logoUrl = prevData.logoUrl;
+            }
+            if (cmsData.heroImage === "/api/media/cms-hero" && prevData.heroImage) {
+              mergedCms.heroImage = prevData.heroImage;
+            }
+            if (
+              cmsData.welcomeScreen?.imageUrl === "/api/media/cms-welcome" &&
+              prevData.welcomeScreen?.imageUrl
+            ) {
+              mergedCms.welcomeScreen = {
+                ...mergedCms.welcomeScreen,
+                imageUrl: prevData.welcomeScreen.imageUrl,
+              };
+            }
+
+            if (
+              mergedCms.heroImage?.includes("photo-test-") ||
+              mergedCms.heroImage?.includes("photo-audit-")
+            ) {
+              mergedCms.heroImage = "";
+            }
+            if (
+              mergedCms.welcomeScreen?.imageUrl?.includes("photo-test-") ||
+              mergedCms.welcomeScreen?.imageUrl?.includes("photo-audit-")
+            ) {
+              mergedCms.welcomeScreen = {
+                ...mergedCms.welcomeScreen,
+                imageUrl: "",
+              };
+            }
+
             await sql`
               INSERT INTO cms_content (id, data)
-              VALUES ('main_cms', ${sql.json(cmsData)})
+              VALUES ('main_cms', ${sql.json(mergedCms)})
               ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data
             `;
           } catch (e) {

@@ -113,27 +113,56 @@ export async function resolveMedia(id: string): Promise<MediaResolved | null> {
     }
   }
 
-  if (!rawData || typeof rawData !== "string") {
-    return null;
+  if (!rawData || typeof rawData !== "string" || !rawData.trim()) {
+    return getDefaultFallback(id);
   }
 
+  const clean = rawData.trim();
+
   // Handle Base64 Data URL (e.g. data:image/jpeg;base64,...)
-  if (rawData.startsWith("data:")) {
-    const match = rawData.match(/^data:([^;]+);base64,(.+)$/s);
-    if (!match) return null;
+  if (clean.startsWith("data:")) {
+    const match = clean.match(/^data:([^;]+);base64,(.+)$/s);
+    if (!match || !match[2]) return getDefaultFallback(id);
     const contentType = match[1] || "image/jpeg";
-    const base64Data = match[2];
-    const buffer = Buffer.from(base64Data, "base64");
-    const etag = `"${buffer.length}-${buffer.subarray(0, Math.min(32, buffer.length)).toString("hex")}"`;
-    return { buffer, contentType, etag };
+    const base64Data = match[2].trim();
+    try {
+      const buffer = Buffer.from(base64Data, "base64");
+      const etag = `"${buffer.length}-${buffer.subarray(0, Math.min(32, buffer.length)).toString("hex")}"`;
+      return { buffer, contentType, etag };
+    } catch {
+      return getDefaultFallback(id);
+    }
+  }
+
+  // Break self-referential redirect loops (e.g. rawData was saved as /api/media/...)
+  if (clean.startsWith("/api/media/") || clean === id) {
+    return getDefaultFallback(id);
+  }
+
+  // Filter out mock test URLs from automated tests (e.g. photo-test-welcome-456.jpg, photo-audit-)
+  if (clean.includes("photo-test-") || clean.includes("photo-audit-")) {
+    return getDefaultFallback(id);
   }
 
   // Handle URL redirect (external or static asset path)
-  if (rawData.startsWith("http://") || rawData.startsWith("https://") || rawData.startsWith("/")) {
-    return { redirectUrl: rawData };
+  if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("/")) {
+    return { redirectUrl: clean };
   }
 
-  return null;
+  return getDefaultFallback(id);
+}
+
+function getDefaultFallback(id: string): MediaResolved {
+  if (id === "cms-hero" || id === "cms-welcome") {
+    return { redirectUrl: "/hero.jpg" };
+  }
+  if (id === "cms-logo") {
+    return { redirectUrl: "/nanami-logo.png" };
+  }
+  if (id.startsWith("promo-")) {
+    return { redirectUrl: "/hero.jpg" };
+  }
+  return { redirectUrl: "/food-1.jpg" };
 }
 
 // Re-export pure image optimization functions for backwards compatibility

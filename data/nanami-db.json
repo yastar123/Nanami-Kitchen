@@ -34,7 +34,7 @@
     "brandSuffix": "kitchen",
     "tagline": "Good food, made with love.",
     "description": "Delicious bento boxes, crispy chicken, snacks, and refreshing handcrafted drinks made fresh for families and co-workers.",
-    "heroImage": "https://images.unsplash.com/photo-audit-hero-123.jpg",
+    "heroImage": "",
     "heroTitleLine1": "Good Food.",
     "heroTitleLine2": "Made with Love",
     "heroSlogan": "Good Food. Made with Love",
@@ -47,7 +47,7 @@
     },
     "welcomeScreen": {
       "enabled": true,
-      "imageUrl": "https://images.unsplash.com/photo-audit-welcome-456.jpg",
+      "imageUrl": "",
       "duration": 3500
     },
     "socials": {

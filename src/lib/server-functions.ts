@@ -634,7 +634,10 @@ export const saveMenuItemDb = createServerFn({ method: "POST" })
           description = EXCLUDED.description,
           price = EXCLUDED.price,
           category = EXCLUDED.category,
-          image = EXCLUDED.image,
+          image = CASE 
+            WHEN EXCLUDED.image LIKE '/api/media/menu-%' AND menu_items.image != '' THEN menu_items.image 
+            ELSE EXCLUDED.image 
+          END,
           available = EXCLUDED.available,
           prep_minutes = EXCLUDED.prep_minutes,
           badges = EXCLUDED.badges,
@@ -887,7 +890,10 @@ export const savePromoDb = createServerFn({ method: "POST" })
           title = EXCLUDED.title,
           subtitle = EXCLUDED.subtitle,
           badge = EXCLUDED.badge,
-          image_url = EXCLUDED.image_url,
+          image_url = CASE 
+            WHEN EXCLUDED.image_url LIKE '/api/media/promo-%' AND promos.image_url != '' THEN promos.image_url 
+            ELSE EXCLUDED.image_url 
+          END,
           link = EXCLUDED.link,
           active = EXCLUDED.active
       `;
@@ -1042,9 +1048,46 @@ export const saveCmsDb = createServerFn({ method: "POST" })
     const { sql } = await getDb();
     if (!sql) return { ok: true, source: "storage" };
     try {
+      const existing =
+        (await sql`SELECT data FROM cms_content WHERE id = 'main_cms' LIMIT 1`) as any[];
+      const prevData = (existing[0]?.data as Partial<CmsContent>) || {};
+      const mergedCms: CmsContent = { ...prevData, ...cms };
+
+      if (cms.logoUrl === "/api/media/cms-logo" && prevData.logoUrl) {
+        mergedCms.logoUrl = prevData.logoUrl;
+      }
+      if (cms.heroImage === "/api/media/cms-hero" && prevData.heroImage) {
+        mergedCms.heroImage = prevData.heroImage;
+      }
+      if (
+        cms.welcomeScreen?.imageUrl === "/api/media/cms-welcome" &&
+        prevData.welcomeScreen?.imageUrl
+      ) {
+        mergedCms.welcomeScreen = {
+          ...mergedCms.welcomeScreen,
+          imageUrl: prevData.welcomeScreen.imageUrl,
+        };
+      }
+
+      if (
+        mergedCms.heroImage?.includes("photo-test-") ||
+        mergedCms.heroImage?.includes("photo-audit-")
+      ) {
+        mergedCms.heroImage = "";
+      }
+      if (
+        mergedCms.welcomeScreen?.imageUrl?.includes("photo-test-") ||
+        mergedCms.welcomeScreen?.imageUrl?.includes("photo-audit-")
+      ) {
+        mergedCms.welcomeScreen = {
+          ...mergedCms.welcomeScreen,
+          imageUrl: "",
+        };
+      }
+
       await sql`
         INSERT INTO cms_content (id, data)
-        VALUES ('main_cms', ${sql.json(cms)})
+        VALUES ('main_cms', ${sql.json(mergedCms)})
         ON CONFLICT (id) DO UPDATE SET
           data = EXCLUDED.data
       `;
@@ -1134,7 +1177,10 @@ export const saveMediaAssetDb = createServerFn({ method: "POST" })
         INSERT INTO media_assets (id, url, filename, uploaded_at, used_by_menu_ids)
         VALUES (${m.id}, ${m.url}, ${m.filename}, ${m.uploadedAt}, ${sql.json(m.usedByMenuIds)})
         ON CONFLICT (id) DO UPDATE SET
-          url = EXCLUDED.url,
+          url = CASE
+            WHEN EXCLUDED.url LIKE '/api/media/asset-%' AND media_assets.url != '' THEN media_assets.url
+            ELSE EXCLUDED.url
+          END,
           filename = EXCLUDED.filename,
           used_by_menu_ids = EXCLUDED.used_by_menu_ids
       `;

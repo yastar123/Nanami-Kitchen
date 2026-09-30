@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import defaultHeroImg from "@/assets/hero.jpg";
-import { useStore, resolveMenuImage } from "@/lib/store";
+import { useStore, resolveMenuImage, handleImageError } from "@/lib/store";
 
 export function WelcomeScreen({ onDone }: { onDone: () => void }) {
   const [leaving, setLeaving] = useState(false);
@@ -52,6 +52,8 @@ export function WelcomeScreen({ onDone }: { onDone: () => void }) {
         alt="Nanami Kitchen Welcome Splash"
         loading="eager"
         decoding="sync"
+        referrerPolicy="no-referrer"
+        onError={(e) => handleImageError(e, defaultHeroImg)}
         className="h-full w-full object-cover object-center pointer-events-none select-none"
       />
 

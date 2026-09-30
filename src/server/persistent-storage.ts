@@ -78,7 +78,7 @@ export function getStorageData(): StorageData {
           ...(seedState.settings as Settings),
           ...(parsed.settings || {}),
         },
-        cms: parsed.cms ?? (seedState.cms as CmsContent),
+        cms: sanitizeCmsStorage(parsed.cms ?? (seedState.cms as CmsContent)),
         menu: Array.isArray(parsed.menu) ? parsed.menu : (seedState.menu ?? []),
         orders: Array.isArray(parsed.orders) ? parsed.orders : (seedState.orders ?? []),
         promos: Array.isArray(parsed.promos) ? parsed.promos : (seedState.promos ?? []),
@@ -141,12 +141,43 @@ export function persistStorage(data: StorageData): void {
   saveStorageToFile(data);
 }
 
+export function sanitizeCmsStorage(cms: CmsContent): CmsContent {
+  if (!cms) return cms;
+  const copy = { ...cms };
+  if (
+    copy.heroImage &&
+    (copy.heroImage.includes("photo-test-") || copy.heroImage.includes("photo-audit-"))
+  ) {
+    copy.heroImage = "";
+  }
+  if (
+    copy.welcomeScreen?.imageUrl &&
+    (copy.welcomeScreen.imageUrl.includes("photo-test-") ||
+      copy.welcomeScreen.imageUrl.includes("photo-audit-"))
+  ) {
+    copy.welcomeScreen = {
+      ...copy.welcomeScreen,
+      imageUrl: "",
+    };
+  }
+  return copy;
+}
+
 export function saveMenuItemStorage(item: MenuItem): void {
   const current = getStorageData();
+  const cleanItem = { ...item };
+  // If incoming image is an alias like /api/media/menu-:id, preserve previous image if stored
+  if (cleanItem.image && cleanItem.image.startsWith("/api/media/menu-")) {
+    const prev = current.menu.find((m) => m.id === item.id);
+    if (prev?.image && !prev.image.startsWith("/api/media/")) {
+      cleanItem.image = prev.image;
+    }
+  }
+
   const exists = current.menu.some((m) => m.id === item.id);
   const updatedMenu = exists
-    ? current.menu.map((m) => (m.id === item.id ? { ...m, ...item } : m))
-    : [...current.menu, item];
+    ? current.menu.map((m) => (m.id === item.id ? { ...m, ...cleanItem } : m))
+    : [...current.menu, cleanItem];
 
   persistStorage({
     ...current,
@@ -206,10 +237,18 @@ export function deleteVoucherStorage(code: string): void {
 
 export function savePromoStorage(p: Promo): void {
   const current = getStorageData();
+  const cleanPromo = { ...p };
+  if (cleanPromo.imageUrl && cleanPromo.imageUrl.startsWith("/api/media/promo-")) {
+    const prev = current.promos.find((x) => x.id === p.id);
+    if (prev?.imageUrl && !prev.imageUrl.startsWith("/api/media/")) {
+      cleanPromo.imageUrl = prev.imageUrl;
+    }
+  }
+
   const exists = current.promos.some((x) => x.id === p.id);
   const updatedPromos = exists
-    ? current.promos.map((x) => (x.id === p.id ? p : x))
-    : [...current.promos, p];
+    ? current.promos.map((x) => (x.id === p.id ? cleanPromo : x))
+    : [...current.promos, cleanPromo];
 
   persistStorage({
     ...current,
@@ -282,18 +321,62 @@ export function saveSettingsStorage(settings: Settings): void {
 
 export function saveCmsStorage(cms: CmsContent): void {
   const current = getStorageData();
+  const mergedCms = { ...current.cms, ...cms };
+
+  // Preserve existing real images if incoming is an /api/media/ alias
+  if (cms.logoUrl === "/api/media/cms-logo" && current.cms.logoUrl) {
+    mergedCms.logoUrl = current.cms.logoUrl;
+  }
+  if (cms.heroImage === "/api/media/cms-hero" && current.cms.heroImage) {
+    mergedCms.heroImage = current.cms.heroImage;
+  }
+  if (
+    cms.welcomeScreen?.imageUrl === "/api/media/cms-welcome" &&
+    current.cms.welcomeScreen?.imageUrl
+  ) {
+    mergedCms.welcomeScreen = {
+      ...mergedCms.welcomeScreen,
+      imageUrl: current.cms.welcomeScreen.imageUrl,
+    };
+  }
+
+  // Filter out dummy test URLs from test suites
+  if (
+    mergedCms.heroImage?.includes("photo-test-") ||
+    mergedCms.heroImage?.includes("photo-audit-")
+  ) {
+    mergedCms.heroImage = "";
+  }
+  if (
+    mergedCms.welcomeScreen?.imageUrl?.includes("photo-test-") ||
+    mergedCms.welcomeScreen?.imageUrl?.includes("photo-audit-")
+  ) {
+    mergedCms.welcomeScreen = {
+      ...mergedCms.welcomeScreen,
+      imageUrl: "",
+    };
+  }
+
   persistStorage({
     ...current,
-    cms: { ...current.cms, ...cms },
+    cms: mergedCms,
   });
 }
 
 export function saveMediaAssetStorage(media: MediaAsset): void {
   const current = getStorageData();
+  const cleanMedia = { ...media };
+  if (cleanMedia.url && cleanMedia.url.startsWith("/api/media/asset-")) {
+    const prev = current.mediaAssets.find((m) => m.id === media.id);
+    if (prev?.url && !prev.url.startsWith("/api/media/")) {
+      cleanMedia.url = prev.url;
+    }
+  }
+
   const exists = current.mediaAssets.some((m) => m.id === media.id);
   const updatedMedia = exists
-    ? current.mediaAssets.map((m) => (m.id === media.id ? media : m))
-    : [media, ...current.mediaAssets];
+    ? current.mediaAssets.map((m) => (m.id === media.id ? cleanMedia : m))
+    : [cleanMedia, ...current.mediaAssets];
 
   persistStorage({
     ...current,

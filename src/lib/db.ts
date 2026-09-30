@@ -189,6 +189,39 @@ export async function initDb(): Promise<boolean> {
 
       await syncEnvAccounts();
 
+      // Automatically clean up any leftover mock test URLs from PostgreSQL
+      try {
+        const cmsRows =
+          (await sql`SELECT data FROM cms_content WHERE id = 'main_cms' LIMIT 1`) as any[];
+        if (cmsRows.length && cmsRows[0]?.data) {
+          const cmsData = cmsRows[0].data;
+          let modified = false;
+          if (
+            cmsData.heroImage &&
+            (cmsData.heroImage.includes("photo-test-") ||
+              cmsData.heroImage.includes("photo-audit-"))
+          ) {
+            cmsData.heroImage = "";
+            modified = true;
+          }
+          if (
+            cmsData.welcomeScreen?.imageUrl &&
+            (cmsData.welcomeScreen.imageUrl.includes("photo-test-") ||
+              cmsData.welcomeScreen.imageUrl.includes("photo-audit-"))
+          ) {
+            cmsData.welcomeScreen.imageUrl = "";
+            modified = true;
+          }
+          if (modified) {
+            await sql`UPDATE cms_content SET data = ${sql.json(cmsData)} WHERE id = 'main_cms'`;
+            console.log("[DB] Cleaned up mock test URLs from PostgreSQL cms_content table.");
+          }
+        }
+        await sql`DELETE FROM media_assets WHERE url LIKE '%photo-test-%' OR url LIKE '%photo-audit-%'`;
+      } catch (cleanErr) {
+        // Non-fatal
+      }
+
       console.log("PostgreSQL tables checked/created successfully.");
       isInitialized = true;
       return true;
