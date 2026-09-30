@@ -239,7 +239,11 @@ function LoginPage() {
 
         <p className="mt-5 text-center text-xs text-muted-foreground">
           Don&apos;t have an account yet?{" "}
-          <Link to="/register" className="font-semibold text-primary underline underline-offset-2">
+          <Link
+            to="/register"
+            reloadDocument
+            className="font-semibold text-primary underline underline-offset-2"
+          >
             Register New Account
           </Link>
         </p>

@@ -225,7 +225,7 @@ function RegisterPage() {
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link to="/login" className="font-semibold text-primary">
+        <Link to="/login" reloadDocument className="font-semibold text-primary">
           Sign In Here
         </Link>
       </p>
