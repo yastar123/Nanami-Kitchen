@@ -41,14 +41,59 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error("Root ErrorComponent caught error:", error);
   const router = useRouter();
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
-  const handleClearCache = () => {
+  // Automatic recovery for stale dynamic imports (e.g. Failed to fetch dynamically imported module)
+  useEffect(() => {
+    const isModuleError =
+      error?.message?.includes("Failed to fetch dynamically imported module") ||
+      error?.message?.includes("Importing a module script failed") ||
+      error?.message?.includes("error loading dynamically imported module");
+
+    if (isModuleError && typeof window !== "undefined") {
+      const recovered = sessionStorage.getItem("nanami_chunk_recovered");
+      if (!recovered) {
+        sessionStorage.setItem("nanami_chunk_recovered", "true");
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((regs) => {
+            regs.forEach((r) => r.unregister());
+          });
+        }
+        if (typeof caches !== "undefined") {
+          caches.keys().then((keys) => {
+            keys.forEach((k) => caches.delete(k));
+          });
+        }
+        window.location.reload();
+      }
+    }
+  }, [error]);
+
+  const handleClearCache = async () => {
     try {
       if (typeof document !== "undefined") {
         document.cookie = "nanami_session_token=; path=/; max-age=0; SameSite=Lax";
+      }
+      if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          await reg.unregister();
+        }
+      }
+      if (typeof caches !== "undefined") {
+        const keys = await caches.keys();
+        for (const key of keys) {
+          await caches.delete(key);
+        }
+      }
+      if (typeof localStorage !== "undefined") {
+        localStorage.clear();
+      }
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.clear();
       }
     } catch (e) {
       console.error(e);
@@ -204,6 +249,13 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const serverState = Route.useLoaderData();
   const lastHydratedRef = useRef<any>(null);
+
+  // Clear chunk recovery flag upon successful page render
+  useEffect(() => {
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.removeItem("nanami_chunk_recovered");
+    }
+  }, []);
 
   // Synchronously hydrate state if serverState is available so child components
   // immediately have the up-to-date database state on the first render pass

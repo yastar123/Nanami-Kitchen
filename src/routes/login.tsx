@@ -85,8 +85,9 @@ function LoginPage() {
         return;
       }
       handleDirectRoute(result.role);
-    } catch {
-      setError("An unexpected error occurred during sign in. Please try again.");
+    } catch (err: any) {
+      console.error("Sign in error:", err);
+      setError(err?.message || "An unexpected error occurred during sign in. Please try again.");
     } finally {
       setLoading(false);
     }

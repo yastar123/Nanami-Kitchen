@@ -1,5 +1,5 @@
-const CACHE = "nanami-shell-v2";
-const PRECACHE = ["/", "/manifest.webmanifest", "/favicon.png", "/icon-192.png", "/icon-512.png"];
+const CACHE = "nanami-shell-v4";
+const PRECACHE = ["/manifest.webmanifest", "/favicon.png", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -26,48 +26,36 @@ self.addEventListener("fetch", (event) => {
   // 1. Only handle GET requests from the same origin
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // 2. NEVER intercept or cache admin, owner, api, or websocket routes
+  // 2. NEVER intercept or cache admin, owner, api, server-functions, or JS code bundles
   if (
     url.pathname.startsWith("/api") ||
     url.pathname.startsWith("/owner") ||
     url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/_server") ||
     url.pathname.includes("_data") ||
-    url.searchParams.has("_data")
+    url.searchParams.has("_data") ||
+    url.pathname.endsWith(".js") ||
+    url.pathname.includes(".js?")
   ) {
     return;
   }
 
-  // 3. Navigation requests: Network-first, fallback to root cache
+  // 3. Navigation requests: Network-first, do NOT cache HTML shell to avoid stale chunk hashes
   if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches
-              .open(CACHE)
-              .then((cache) => cache.put("/", copy))
-              .catch(() => {});
-          }
-          return response;
-        })
-        .catch(() => caches.match("/").then((cached) => cached || Response.error())),
-    );
     return;
   }
 
-  // 4. Static assets (images, css, js, fonts): Cache-first with network fallback
-  const isStaticAsset =
-    url.pathname.startsWith("/assets/") ||
-    url.pathname.endsWith(".js") ||
-    url.pathname.endsWith(".css") ||
+  // 4. Static media assets only (images, icons, webmanifest): Stale-while-revalidate / cache-first
+  const isMediaAsset =
     url.pathname.endsWith(".png") ||
     url.pathname.endsWith(".jpg") ||
+    url.pathname.endsWith(".jpeg") ||
     url.pathname.endsWith(".svg") ||
     url.pathname.endsWith(".webp") ||
+    url.pathname.endsWith(".ico") ||
     url.pathname.endsWith(".webmanifest");
 
-  if (isStaticAsset) {
+  if (isMediaAsset) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;

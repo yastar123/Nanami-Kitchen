@@ -75,7 +75,7 @@ export function getStorageData(): StorageData {
       memoryState = {
         settings: {
           currencySymbol: "N$",
-          ...(seedState.settings as AppSettings),
+          ...(seedState.settings as Settings),
           ...(parsed.settings || {}),
         },
         cms: parsed.cms ?? (seedState.cms as CmsContent),
@@ -105,7 +105,7 @@ export function getStorageData(): StorageData {
   };
 
   memoryState = {
-    settings: safeClone(seedState.settings, {} as AppSettings),
+    settings: safeClone(seedState.settings, {} as Settings),
     cms: safeClone(seedState.cms, {} as CmsContent),
     menu: safeClone(seedState.menu, []),
     orders: safeClone(seedState.orders, []),
