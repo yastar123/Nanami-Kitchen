@@ -5,6 +5,7 @@ import {
   Calendar,
   Check,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Clock,
   ExternalLink,
@@ -14,10 +15,13 @@ import {
   Flame,
   MessageSquare,
   Package,
+  Pencil,
   Phone,
+  Plus,
   RotateCcw,
   Search,
   ShoppingBag,
+  Trash2,
   Truck,
   User,
   X,
@@ -28,6 +32,8 @@ import {
   formatCurrency,
   rupiah,
   useStore,
+  type CartLine,
+  type MenuItem,
   type Order,
   type OrderStatus,
 } from "@/lib/store";
@@ -43,6 +49,16 @@ const STATUS_OPTIONS: OrderStatus[] = [
   "Out for Delivery",
   "Completed",
   "Cancelled",
+];
+
+const PAYMENT_METHODS = [
+  "Cash on Delivery (COD)",
+  "QRIS",
+  "Bank Transfer",
+  "Manual Cash / Kasir",
+  "E-Wallet (GoPay/OVO/ShopeePay)",
+  "Debit / Credit Card",
+  "WhatsApp Checkout",
 ];
 
 function getStatusBadgeClass(status: OrderStatus) {
@@ -90,15 +106,31 @@ function formatRelativeTime(timestamp: number) {
   return `${diffDays}d ago`;
 }
 
-export function OrderManagementPanel() {
+interface OrderManagementPanelProps {
+  isOwner?: boolean;
+}
+
+export function OrderManagementPanel({ isOwner = false }: OrderManagementPanelProps) {
   const orders = useStore((s) => s.orders);
+  const menu = useStore((s) => s.menu);
+  const settings = useStore((s) => s.settings);
+
   const [activeTab, setActiveTab] = useState<StatusTabKey>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "delivery" | "pickup">("all");
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "yesterday" | "week">("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "highest">("newest");
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [viewMode, setViewMode] = useState<"pipeline" | "recap">("pipeline");
+
+  // Pagination states (8 items per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
+  // Dialog states
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [deletingOrder, setDeletingOrder] = useState<Order | null>(null);
 
   // Status Counts
   const counts = useMemo(() => {
@@ -192,6 +224,13 @@ export function OrderManagementPanel() {
       });
   }, [orders, activeTab, typeFilter, dateFilter, searchQuery, sortOrder]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedOrders = useMemo(() => {
+    const start = (safePage - 1) * ITEMS_PER_PAGE;
+    return filteredOrders.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredOrders, safePage]);
+
   function handleStatusChange(orderId: string, newStatus: OrderStatus) {
     actions.setOrderStatus(orderId, newStatus);
     if (selectedOrder && selectedOrder.id === orderId) {
@@ -200,6 +239,14 @@ export function OrderManagementPanel() {
           ? { ...prev, status: newStatus, paid: prev.paid || newStatus !== "Pending Payment" }
           : null,
       );
+    }
+  }
+
+  function handleDeleteOrder(order: Order) {
+    actions.deleteOrder(order.id);
+    setDeletingOrder(null);
+    if (selectedOrder?.id === order.id) {
+      setSelectedOrder(null);
     }
   }
 
@@ -231,7 +278,7 @@ export function OrderManagementPanel() {
         />
       </div>
 
-      {/* View Mode Toggle Header */}
+      {/* View Mode Toggle & Create Button Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1.5 rounded-2xl border border-border bg-card p-1 shadow-xs">
           <button
@@ -257,6 +304,17 @@ export function OrderManagementPanel() {
             <span>7-Day Sales Recap</span>
           </button>
         </div>
+
+        {/* Owner-Only: Create Manual Order Button */}
+        {isOwner && (
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm transition hover:opacity-95 active:scale-95"
+          >
+            <Plus className="size-4" />
+            <span>Buat Pesanan Baru</span>
+          </button>
+        )}
       </div>
 
       {viewMode === "recap" ? (
@@ -268,7 +326,10 @@ export function OrderManagementPanel() {
           <div className="border-b border-border px-4 pt-3 sm:px-6">
             <div className="flex space-x-2 overflow-x-auto pb-3 scrollbar-none">
               <button
-                onClick={() => setActiveTab("all")}
+                onClick={() => {
+                  setActiveTab("all");
+                  setCurrentPage(1);
+                }}
                 className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
                   activeTab === "all"
                     ? "bg-primary text-primary-foreground shadow-sm"
@@ -288,7 +349,10 @@ export function OrderManagementPanel() {
               </button>
 
               <button
-                onClick={() => setActiveTab("pending")}
+                onClick={() => {
+                  setActiveTab("pending");
+                  setCurrentPage(1);
+                }}
                 className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
                   activeTab === "pending"
                     ? "bg-amber-500 text-white shadow-sm"
@@ -309,7 +373,10 @@ export function OrderManagementPanel() {
               </button>
 
               <button
-                onClick={() => setActiveTab("cooking")}
+                onClick={() => {
+                  setActiveTab("cooking");
+                  setCurrentPage(1);
+                }}
                 className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
                   activeTab === "cooking"
                     ? "bg-blue-600 text-white shadow-sm"
@@ -330,7 +397,10 @@ export function OrderManagementPanel() {
               </button>
 
               <button
-                onClick={() => setActiveTab("ready")}
+                onClick={() => {
+                  setActiveTab("ready");
+                  setCurrentPage(1);
+                }}
                 className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
                   activeTab === "ready"
                     ? "bg-purple-600 text-white shadow-sm"
@@ -351,7 +421,10 @@ export function OrderManagementPanel() {
               </button>
 
               <button
-                onClick={() => setActiveTab("completed")}
+                onClick={() => {
+                  setActiveTab("completed");
+                  setCurrentPage(1);
+                }}
                 className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
                   activeTab === "completed"
                     ? "bg-emerald-600 text-white shadow-sm"
@@ -372,7 +445,10 @@ export function OrderManagementPanel() {
               </button>
 
               <button
-                onClick={() => setActiveTab("cancelled")}
+                onClick={() => {
+                  setActiveTab("cancelled");
+                  setCurrentPage(1);
+                }}
                 className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
                   activeTab === "cancelled"
                     ? "bg-rose-600 text-white shadow-sm"
@@ -402,75 +478,65 @@ export function OrderManagementPanel() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by Order ID, customer, phone, item..."
-                className="w-full rounded-2xl border border-border bg-background py-2.5 pl-10 pr-9 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search order ID, customer name, phone, item..."
+                className="w-full rounded-2xl border border-border bg-background py-2 pl-9 pr-8 text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setCurrentPage(1);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   <X className="size-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Quick Select Filters */}
+            {/* Quick Filters */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Order Type */}
-              <div className="flex items-center rounded-xl border border-border bg-secondary/40 p-1">
-                <button
-                  onClick={() => setTypeFilter("all")}
-                  className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition ${
-                    typeFilter === "all"
-                      ? "bg-background font-bold text-foreground shadow-xs"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  All Types
-                </button>
-                <button
-                  onClick={() => setTypeFilter("delivery")}
-                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium transition ${
-                    typeFilter === "delivery"
-                      ? "bg-background font-bold text-foreground shadow-xs"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  <Truck className="size-3" /> Delivery
-                </button>
-                <button
-                  onClick={() => setTypeFilter("pickup")}
-                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium transition ${
-                    typeFilter === "pickup"
-                      ? "bg-background font-bold text-foreground shadow-xs"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  <ShoppingBag className="size-3" /> Pickup
-                </button>
-              </div>
+              {/* Type Filter */}
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value as "all" | "delivery" | "pickup");
+                  setCurrentPage(1);
+                }}
+                className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground focus:border-primary focus:outline-none"
+              >
+                <option value="all">All Types</option>
+                <option value="delivery">Delivery</option>
+                <option value="pickup">Pickup</option>
+              </select>
 
               {/* Date Filter */}
               <select
                 value={dateFilter}
-                onChange={(e) =>
-                  setDateFilter(e.target.value as "all" | "today" | "yesterday" | "week")
-                }
-                className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
+                onChange={(e) => {
+                  setDateFilter(e.target.value as "all" | "today" | "yesterday" | "week");
+                  setCurrentPage(1);
+                }}
+                className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground focus:border-primary focus:outline-none"
               >
                 <option value="all">All Dates</option>
                 <option value="today">Today</option>
                 <option value="yesterday">Yesterday</option>
-                <option value="week">Past 7 Days</option>
+                <option value="week">Last 7 Days</option>
               </select>
 
               {/* Sort Order */}
               <select
                 value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "highest")}
-                className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
+                onChange={(e) => {
+                  setSortOrder(e.target.value as "newest" | "oldest" | "highest");
+                  setCurrentPage(1);
+                }}
+                className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground focus:border-primary focus:outline-none"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -479,28 +545,22 @@ export function OrderManagementPanel() {
             </div>
           </div>
 
-          {/* Orders Table (Desktop) & Cards (Mobile) */}
+          {/* Orders Table Container */}
           {filteredOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 text-center">
-              <div className="flex size-14 items-center justify-center rounded-2xl bg-secondary/60 text-muted-foreground">
-                <FileText className="size-7" />
-              </div>
-              <p className="mt-4 text-sm font-bold text-foreground">No orders found</p>
+            <div className="p-12 text-center">
+              <ShoppingBag className="mx-auto size-10 text-muted-foreground/40" />
+              <p className="mt-3 text-sm font-semibold text-foreground">No orders found</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {searchQuery
-                  ? `No orders matching "${searchQuery}". Try clearing search or filters.`
-                  : "There are currently no orders in this status category."}
+                {searchQuery || typeFilter !== "all" || dateFilter !== "all" || activeTab !== "all"
+                  ? "Try changing your search keywords or filter options."
+                  : "No orders have been placed in this category yet."}
               </p>
-              {(searchQuery || typeFilter !== "all" || dateFilter !== "all") && (
+              {isOwner && (
                 <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setTypeFilter("all");
-                    setDateFilter("all");
-                  }}
-                  className="mt-4 rounded-full border border-border bg-secondary/50 px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary"
+                  onClick={() => setIsCreateOpen(true)}
+                  className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm"
                 >
-                  Reset Filters
+                  <Plus className="size-3.5" /> Buat Pesanan Baru
                 </button>
               )}
             </div>
@@ -520,10 +580,9 @@ export function OrderManagementPanel() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {filteredOrders.map((order) => {
+                    {paginatedOrders.map((order) => {
                       const nextAction = getNextStatusAction(order);
                       const totalQty = order.lines.reduce((s, l) => s + l.qty, 0);
-                      const hasSpecialRequest = order.lines.some((l) => Boolean(l.note));
 
                       return (
                         <tr key={order.id} className="transition hover:bg-secondary/15">
@@ -552,7 +611,7 @@ export function OrderManagementPanel() {
                               <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                                 <Clock className="size-3" />
                                 <span>
-                                  {new Date(order.createdAt).toLocaleTimeString("en-ZA", {
+                                  {new Date(order.createdAt).toLocaleTimeString("id-ID", {
                                     hour: "2-digit",
                                     minute: "2-digit",
                                   })}
@@ -568,15 +627,11 @@ export function OrderManagementPanel() {
                             <div className="space-y-1">
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold text-foreground">
-                                  {order.customer.name || "Guest Customer"}
+                                  {order.customer.name || "Customer"}
                                 </span>
-                                {order.accountId ? (
+                                {order.accountId && (
                                   <span className="rounded bg-primary/10 px-1.5 py-0.2 text-[9px] font-bold text-primary">
                                     Member
-                                  </span>
-                                ) : (
-                                  <span className="rounded bg-secondary px-1.5 py-0.2 text-[9px] font-medium text-muted-foreground">
-                                    Guest
                                   </span>
                                 )}
                               </div>
@@ -696,6 +751,31 @@ export function OrderManagementPanel() {
                                 </button>
                               )}
 
+                              {/* Owner-only: Edit Button */}
+                              {isOwner && (
+                                <button
+                                  onClick={() => setEditingOrder(order)}
+                                  title="Edit Order"
+                                  aria-label={`Edit ${order.code}`}
+                                  className="rounded-xl border border-border bg-secondary/40 p-2 text-muted-foreground transition hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                                >
+                                  <Pencil className="size-3.5" />
+                                </button>
+                              )}
+
+                              {/* Owner-only: Delete Button */}
+                              {isOwner && (
+                                <button
+                                  onClick={() => setDeletingOrder(order)}
+                                  title="Delete Order"
+                                  aria-label={`Delete ${order.code}`}
+                                  className="rounded-xl border border-border bg-secondary/40 p-2 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </button>
+                              )}
+
+                              {/* Details Button */}
                               <button
                                 onClick={() => setSelectedOrder(order)}
                                 title="View Order Details"
@@ -715,7 +795,7 @@ export function OrderManagementPanel() {
 
               {/* Mobile / Tablet Cards View */}
               <div className="divide-y divide-border lg:hidden">
-                {filteredOrders.map((order) => {
+                {paginatedOrders.map((order) => {
                   const nextAction = getNextStatusAction(order);
                   const totalQty = order.lines.reduce((s, l) => s + l.qty, 0);
 
@@ -739,7 +819,7 @@ export function OrderManagementPanel() {
                             </span>
                           </div>
                           <p className="text-[11px] text-muted-foreground">
-                            {order.customer.name || "Guest"} &bull;{" "}
+                            {order.customer.name || "Customer"} &bull;{" "}
                             {formatRelativeTime(order.createdAt)}
                           </p>
                         </div>
@@ -774,14 +854,31 @@ export function OrderManagementPanel() {
                       </div>
 
                       {/* Quick Actions */}
-                      <div className="flex items-center justify-between gap-2 pt-1">
-                        <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => setSelectedOrder(order)}
-                            className="flex items-center gap-1 rounded-xl border border-border bg-secondary/40 px-3 py-1.5 text-xs font-semibold text-foreground"
+                            className="flex items-center gap-1 rounded-xl border border-border bg-secondary/40 px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary"
                           >
                             <Eye className="size-3" /> Details
                           </button>
+
+                          {isOwner && (
+                            <>
+                              <button
+                                onClick={() => setEditingOrder(order)}
+                                className="flex items-center gap-1 rounded-xl border border-border bg-secondary/40 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                              >
+                                <Pencil className="size-3" /> Edit
+                              </button>
+                              <button
+                                onClick={() => setDeletingOrder(order)}
+                                className="flex items-center gap-1 rounded-xl border border-border bg-secondary/40 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="size-3" /> Hapus
+                              </button>
+                            </>
+                          )}
                         </div>
 
                         {nextAction && (
@@ -798,6 +895,77 @@ export function OrderManagementPanel() {
                   );
                 })}
               </div>
+
+              {/* Pagination Controls Bar */}
+              {filteredOrders.length > ITEMS_PER_PAGE && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border bg-secondary/10">
+                  <p className="text-xs text-muted-foreground">
+                    Menampilkan{" "}
+                    <span className="font-semibold text-foreground">
+                      {(safePage - 1) * ITEMS_PER_PAGE + 1} -{" "}
+                      {Math.min(safePage * ITEMS_PER_PAGE, filteredOrders.length)}
+                    </span>{" "}
+                    dari{" "}
+                    <span className="font-semibold text-foreground">{filteredOrders.length}</span>{" "}
+                    pesanan
+                  </p>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      disabled={safePage <= 1}
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className="flex items-center gap-1 rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <ChevronLeft className="size-3.5" /> Prev
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => {
+                        if (
+                          totalPages > 5 &&
+                          num !== 1 &&
+                          num !== totalPages &&
+                          Math.abs(num - safePage) > 1
+                        ) {
+                          if (num === 2 || num === totalPages - 1) {
+                            return (
+                              <span key={num} className="px-1 text-xs text-muted-foreground">
+                                ...
+                              </span>
+                            );
+                          }
+                          return null;
+                        }
+
+                        return (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setCurrentPage(num)}
+                            className={`size-7 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              safePage === num
+                                ? "bg-primary text-primary-foreground shadow-xs"
+                                : "bg-background text-muted-foreground hover:bg-secondary hover:text-foreground border border-border"
+                            }`}
+                          >
+                            {num}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      className="flex items-center gap-1 rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+                    >
+                      Next <ChevronRight className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -826,7 +994,7 @@ export function OrderManagementPanel() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Placed on{" "}
-                  {new Date(selectedOrder.createdAt).toLocaleDateString("en-ZA", {
+                  {new Date(selectedOrder.createdAt).toLocaleDateString("id-ID", {
                     weekday: "short",
                     day: "numeric",
                     month: "short",
@@ -1001,10 +1169,37 @@ export function OrderManagementPanel() {
             </div>
 
             {/* Actions */}
-            <div className="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
+              <div>
+                {isOwner && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const ord = selectedOrder;
+                        setSelectedOrder(null);
+                        setEditingOrder(ord);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20"
+                    >
+                      <Pencil className="size-3.5" /> Edit Pesanan
+                    </button>
+                    <button
+                      onClick={() => {
+                        const ord = selectedOrder;
+                        setSelectedOrder(null);
+                        setDeletingOrder(ord);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive hover:bg-destructive/20"
+                    >
+                      <Trash2 className="size-3.5" /> Hapus
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"
+                className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary/80"
               >
                 Close
               </button>
@@ -1012,6 +1207,599 @@ export function OrderManagementPanel() {
           </div>
         </div>
       )}
+
+      {/* Owner-Only: Create or Edit Order Modal */}
+      {(isCreateOpen || editingOrder) && (
+        <OrderEditorModal
+          initialOrder={editingOrder}
+          menu={menu}
+          defaultDeliveryFee={settings.deliveryFee || 15000}
+          isOpen={true}
+          onClose={() => {
+            setIsCreateOpen(false);
+            setEditingOrder(null);
+          }}
+          onSave={(savedOrder, isNew) => {
+            if (isNew) {
+              actions.createManualOrder(savedOrder);
+            } else {
+              actions.updateOrder(savedOrder);
+            }
+            setIsCreateOpen(false);
+            setEditingOrder(null);
+          }}
+        />
+      )}
+
+      {/* Owner-Only: Delete Confirmation Modal */}
+      {deletingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/15 text-destructive mx-auto">
+              <Trash2 className="size-6" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-base font-bold text-foreground">Hapus Pesanan?</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pesanan <strong className="text-foreground">{deletingOrder.code}</strong> atas nama{" "}
+                <strong className="text-foreground">
+                  {deletingOrder.customer.name || "Pelanggan"}
+                </strong>{" "}
+                akan dihapus permanen dari sistem dan database.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingOrder(null)}
+                className="flex-1 rounded-2xl border border-border bg-secondary/50 py-2.5 text-xs font-bold text-foreground hover:bg-secondary"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteOrder(deletingOrder)}
+                className="flex-1 rounded-2xl bg-destructive py-2.5 text-xs font-bold text-destructive-foreground hover:opacity-90 shadow-sm"
+              >
+                Hapus Permanen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ORDER EDITOR MODAL (Used by Owner to Create or Edit an Order)
+// ---------------------------------------------------------------------------
+interface OrderEditorModalProps {
+  initialOrder: Order | null;
+  menu: MenuItem[];
+  defaultDeliveryFee: number;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (order: Order, isNew: boolean) => void;
+}
+
+function OrderEditorModal({
+  initialOrder,
+  menu,
+  defaultDeliveryFee,
+  isOpen,
+  onClose,
+  onSave,
+}: OrderEditorModalProps) {
+  const isNew = !initialOrder;
+
+  const [code, setCode] = useState(
+    initialOrder?.code || "NK-" + Math.floor(1000 + Math.random() * 9000),
+  );
+  const [type, setType] = useState<"delivery" | "pickup">(initialOrder?.type || "delivery");
+  const [customerName, setCustomerName] = useState(initialOrder?.customer.name || "");
+  const [customerPhone, setCustomerPhone] = useState(initialOrder?.customer.phone || "");
+  const [customerAddress, setCustomerAddress] = useState(initialOrder?.customer.address || "");
+  const [deliveryNote, setDeliveryNote] = useState(initialOrder?.customer.deliveryNote || "");
+  const [status, setStatus] = useState<OrderStatus>(initialOrder?.status || "Cooking");
+  const [paid, setPaid] = useState<boolean>(initialOrder?.paid ?? true);
+  const [paymentMethod, setPaymentMethod] = useState<string>(
+    initialOrder?.paymentMethod || "Manual Cash / Kasir",
+  );
+  const [deliveryFee, setDeliveryFee] = useState<number>(
+    initialOrder ? initialOrder.deliveryFee : type === "delivery" ? defaultDeliveryFee : 0,
+  );
+  const [discount, setDiscount] = useState<number>(initialOrder?.discount || 0);
+  const [voucherCode, setVoucherCode] = useState<string>(initialOrder?.voucherCode || "");
+  const [etaMinutes, setEtaMinutes] = useState<number>(initialOrder?.etaMinutes || 20);
+
+  // Order Lines
+  const [lines, setLines] = useState<CartLine[]>(initialOrder?.lines || []);
+
+  // New Item Selector State
+  const [selectedMenuItemId, setSelectedMenuItemId] = useState<string>(menu[0]?.id || "");
+  const [addItemQty, setAddItemQty] = useState<number>(1);
+  const [addItemNote, setAddItemNote] = useState<string>("");
+
+  const subtotal = useMemo(() => {
+    return lines.reduce((sum, l) => sum + l.unitPrice * l.qty, 0);
+  }, [lines]);
+
+  const effectiveDeliveryFee = type === "delivery" ? Number(deliveryFee) || 0 : 0;
+  const effectiveDiscount = Number(discount) || 0;
+  const total = Math.max(0, subtotal - effectiveDiscount + effectiveDeliveryFee);
+
+  function handleAddMenuItem() {
+    const item = menu.find((m) => m.id === selectedMenuItemId);
+    if (!item) return;
+
+    const existingIdx = lines.findIndex((l) => l.itemId === item.id && !l.note && !addItemNote);
+    if (existingIdx >= 0) {
+      setLines((prev) =>
+        prev.map((l, idx) => (idx === existingIdx ? { ...l, qty: l.qty + addItemQty } : l)),
+      );
+    } else {
+      const newLine: CartLine = {
+        id: "line_" + Math.random().toString(36).substring(2, 9),
+        itemId: item.id,
+        name: item.name,
+        unitPrice: item.price,
+        qty: addItemQty,
+        optionLabels: [],
+        note: addItemNote.trim(),
+      };
+      setLines((prev) => [...prev, newLine]);
+    }
+
+    setAddItemQty(1);
+    setAddItemNote("");
+  }
+
+  function handleRemoveLine(lineId: string) {
+    setLines((prev) => prev.filter((l) => l.id !== lineId));
+  }
+
+  function handleUpdateLineQty(lineId: string, newQty: number) {
+    if (newQty <= 0) {
+      handleRemoveLine(lineId);
+    } else {
+      setLines((prev) => prev.map((l) => (l.id === lineId ? { ...l, qty: newQty } : l)));
+    }
+  }
+
+  function handleUpdateLinePrice(lineId: string, newPrice: number) {
+    setLines((prev) =>
+      prev.map((l) => (l.id === lineId ? { ...l, unitPrice: Math.max(0, newPrice) } : l)),
+    );
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!customerName.trim()) {
+      alert("Silakan masukkan nama pelanggan.");
+      return;
+    }
+    if (lines.length === 0) {
+      alert("Silakan tambahkan minimal 1 item menu ke dalam pesanan.");
+      return;
+    }
+
+    const finalOrder: Order = {
+      id:
+        initialOrder?.id ||
+        "ord_" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
+      code: code.trim() || "NK-" + Math.floor(1000 + Math.random() * 9000),
+      createdAt: initialOrder?.createdAt || Date.now(),
+      type,
+      lines,
+      subtotal,
+      discount: effectiveDiscount,
+      voucherCode: voucherCode.trim(),
+      deliveryFee: effectiveDeliveryFee,
+      total,
+      status,
+      paid,
+      paymentMethod,
+      pointsEarned: initialOrder?.pointsEarned ?? Math.floor(total / 10000) * 10,
+      etaMinutes: Number(etaMinutes) || 20,
+      customer: {
+        name: customerName.trim(),
+        phone: customerPhone.trim(),
+        address: type === "delivery" ? customerAddress.trim() : "",
+        deliveryNote: deliveryNote.trim(),
+        lat: initialOrder?.customer.lat,
+        lng: initialOrder?.customer.lng,
+        mapsUrl: initialOrder?.customer.mapsUrl,
+      },
+      accountId: initialOrder?.accountId || null,
+    };
+
+    onSave(finalOrder, isNew);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+      <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-border bg-card p-6 shadow-2xl">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-border pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">
+              {isNew ? "Buat Pesanan Baru (Owner)" : `Edit Pesanan #${code}`}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {isNew
+                ? "Tambahkan pesanan manual langsung ke sistem dapur & database"
+                : "Ubah rincian pesanan, item, status pembayaran, atau info pengiriman"}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-full border border-border bg-secondary/50 p-1.5 text-muted-foreground hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-5 text-xs">
+          {/* Order Meta Header */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 rounded-2xl border border-border bg-secondary/20 p-3.5">
+            <div>
+              <label className="block text-[11px] font-bold text-muted-foreground">
+                Kode Pesanan
+              </label>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+                className="mt-1 w-full rounded-xl border border-border bg-background px-2.5 py-1.5 font-mono text-xs font-bold text-foreground focus:border-primary focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-muted-foreground">
+                Tipe Layanan
+              </label>
+              <select
+                value={type}
+                onChange={(e) => {
+                  const newType = e.target.value as "delivery" | "pickup";
+                  setType(newType);
+                  if (newType === "pickup") setDeliveryFee(0);
+                  else if (deliveryFee === 0) setDeliveryFee(defaultDeliveryFee);
+                }}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-2.5 py-1.5 text-xs font-semibold text-foreground focus:border-primary focus:outline-none"
+              >
+                <option value="delivery">Delivery</option>
+                <option value="pickup">Pickup / Ambil Sendiri</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-muted-foreground">
+                Status Pesanan
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as OrderStatus)}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-2.5 py-1.5 text-xs font-semibold text-foreground focus:border-primary focus:outline-none"
+              >
+                {STATUS_OPTIONS.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-muted-foreground">
+                Status Bayar
+              </label>
+              <select
+                value={paid ? "paid" : "unpaid"}
+                onChange={(e) => setPaid(e.target.value === "paid")}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-2.5 py-1.5 text-xs font-semibold text-foreground focus:border-primary focus:outline-none"
+              >
+                <option value="paid">Sudah Dibayar (Paid)</option>
+                <option value="unpaid">Belum Dibayar (Unpaid)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Customer & Delivery Section */}
+          <div className="rounded-2xl border border-border bg-secondary/15 p-4 space-y-3">
+            <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <User className="size-3.5 text-primary" /> Informasi Pelanggan
+            </h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-[11px] font-medium text-muted-foreground">
+                  Nama Pelanggan *
+                </label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Contoh: Budi Santoso"
+                  required
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-muted-foreground">
+                  No. Telepon / WhatsApp
+                </label>
+                <input
+                  type="text"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="Contoh: 081234567890"
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:border-primary focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {type === "delivery" && (
+              <div className="space-y-2 pt-1 border-t border-border/40">
+                <div>
+                  <label className="block text-[11px] font-medium text-muted-foreground">
+                    Alamat Pengantaran
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                    placeholder="Alamat lengkap tujuan delivery..."
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-muted-foreground">
+                    Catatan Pengantaran (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={deliveryNote}
+                    onChange={(e) => setDeliveryNote(e.target.value)}
+                    placeholder="Contoh: Rumah pagar hitam samping warung"
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs focus:border-primary focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Items Section */}
+          <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Package className="size-3.5 text-primary" /> Daftar Item Pesanan ({lines.length})
+              </h3>
+            </div>
+
+            {/* Existing lines list */}
+            {lines.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border py-4 text-center text-muted-foreground">
+                Belum ada menu yang dimasukkan. Pilih menu di bawah untuk menambahkan.
+              </div>
+            ) : (
+              <div className="divide-y divide-border rounded-xl border border-border">
+                {lines.map((l) => (
+                  <div
+                    key={l.id}
+                    className="flex flex-wrap items-center justify-between gap-2 p-2.5"
+                  >
+                    <div className="flex-1 min-w-[160px]">
+                      <p className="font-bold text-foreground">{l.name}</p>
+                      {l.note && (
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 italic">
+                          Catatan: {l.note}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {/* Unit Price */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-muted-foreground">@</span>
+                        <input
+                          type="number"
+                          value={l.unitPrice}
+                          onChange={(e) => handleUpdateLinePrice(l.id, Number(e.target.value))}
+                          className="w-20 rounded-lg border border-border bg-background px-1.5 py-1 font-mono text-[11px] text-right focus:border-primary focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Quantity Controls */}
+                      <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary/40 p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateLineQty(l.id, l.qty - 1)}
+                          className="flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-background hover:text-foreground"
+                        >
+                          -
+                        </button>
+                        <span className="w-6 text-center font-mono font-bold text-xs">{l.qty}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateLineQty(l.id, l.qty + 1)}
+                          className="flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-background hover:text-foreground"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Line Subtotal */}
+                      <span className="w-24 text-right font-mono font-bold text-foreground">
+                        {rupiah(l.unitPrice * l.qty)}
+                      </span>
+
+                      {/* Delete */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLine(l.id)}
+                        className="rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Quick Add Menu Item Tool */}
+            <div className="rounded-xl bg-secondary/30 p-3 space-y-2">
+              <span className="text-[11px] font-bold text-muted-foreground">
+                Tambah Menu ke Pesanan:
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={selectedMenuItemId}
+                  onChange={(e) => setSelectedMenuItemId(e.target.value)}
+                  className="flex-1 min-w-[180px] rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold focus:border-primary focus:outline-none"
+                >
+                  {menu.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name} — {rupiah(m.price)}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] text-muted-foreground">Qty:</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={addItemQty}
+                    onChange={(e) => setAddItemQty(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-14 rounded-xl border border-border bg-background px-2 py-1.5 text-center text-xs font-mono font-bold focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <input
+                  type="text"
+                  value={addItemNote}
+                  onChange={(e) => setAddItemNote(e.target.value)}
+                  placeholder="Catatan khusus menu (cth: pedas)..."
+                  className="flex-1 min-w-[150px] rounded-xl border border-border bg-background px-3 py-1.5 text-xs focus:border-primary focus:outline-none"
+                />
+
+                <button
+                  type="button"
+                  onClick={handleAddMenuItem}
+                  className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:opacity-90 active:scale-95"
+                >
+                  <Plus className="size-3.5" /> Tambah
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment & Financial Calculations */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 rounded-2xl border border-border bg-secondary/20 p-4">
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-medium text-muted-foreground">
+                  Metode Pembayaran
+                </label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold focus:border-primary focus:outline-none"
+                >
+                  {PAYMENT_METHODS.map((pm) => (
+                    <option key={pm} value={pm}>
+                      {pm}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-muted-foreground">
+                  Estimasi Selesai (Menit)
+                </label>
+                <input
+                  type="number"
+                  min={5}
+                  value={etaMinutes}
+                  onChange={(e) => setEtaMinutes(Number(e.target.value) || 20)}
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-mono focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-muted-foreground">
+                  Kode Voucher (Opsional)
+                </label>
+                <input
+                  type="text"
+                  value={voucherCode}
+                  onChange={(e) => setVoucherCode(e.target.value)}
+                  placeholder="Contoh: DISKON10"
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-mono uppercase focus:border-primary focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 rounded-xl bg-card p-3 border border-border/80">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal Items:</span>
+                <span className="font-mono font-semibold">{rupiah(subtotal)}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Diskon Potongan (Rp):</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={discount}
+                  onChange={(e) => setDiscount(Math.max(0, Number(e.target.value) || 0))}
+                  className="w-28 rounded-lg border border-border bg-background px-2 py-0.5 text-right font-mono text-xs font-semibold text-emerald-600 focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              {type === "delivery" && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Ongkir Delivery (Rp):</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={deliveryFee}
+                    onChange={(e) => setDeliveryFee(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-28 rounded-lg border border-border bg-background px-2 py-0.5 text-right font-mono text-xs font-semibold focus:border-primary focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between border-t border-border pt-2 text-sm font-bold text-foreground">
+                <span>Total Akhir:</span>
+                <span className="font-mono text-base text-primary">{rupiah(total)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Action Buttons */}
+          <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-2xl border border-border bg-secondary/50 px-4 py-2.5 text-xs font-bold text-foreground hover:bg-secondary"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="rounded-2xl bg-primary px-6 py-2.5 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 active:scale-95"
+            >
+              {isNew ? "Simpan Pesanan Baru" : "Simpan Perubahan"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

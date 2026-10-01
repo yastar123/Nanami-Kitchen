@@ -1190,6 +1190,20 @@ export const actions = {
       return { ...s, orders: updatedOrders };
     });
   },
+  updateOrder(order: Order) {
+    set((s) => {
+      const updatedOrders = s.orders.map((o) => (o.id === order.id ? order : o));
+      saveOrderDb({ data: order }).catch(console.error);
+      return { ...s, orders: updatedOrders };
+    });
+  },
+  createManualOrder(order: Order) {
+    set((s) => {
+      const updatedOrders = [order, ...s.orders];
+      saveOrderDb({ data: order }).catch(console.error);
+      return { ...s, orders: updatedOrders };
+    });
+  },
   deleteOrder(id: string) {
     set((s) => ({ ...s, orders: s.orders.filter((o) => o.id !== id) }));
     deleteOrderDb({ data: id }).catch(console.error);

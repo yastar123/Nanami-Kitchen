@@ -26,7 +26,7 @@ export const Route = createFileRoute("/admin/orders")({
       title="Order Management"
       subtitle="Search, track, and update active orders across the kitchen pipeline"
     >
-      <OrderManagementPanel />
+      <OrderManagementPanel isOwner={false} />
     </DashboardShell>
   ),
 });

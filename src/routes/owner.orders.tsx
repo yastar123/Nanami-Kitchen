@@ -28,9 +28,9 @@ function OwnerOrdersPage() {
     <DashboardShell
       role="owner"
       title="Order Management"
-      subtitle="Search, track, and update active orders across the kitchen pipeline"
+      subtitle="Search, track, create, and manage active orders across the kitchen pipeline"
     >
-      <OrderManagementPanel />
+      <OrderManagementPanel isOwner={true} />
     </DashboardShell>
   );
 }

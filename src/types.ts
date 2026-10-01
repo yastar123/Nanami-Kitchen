@@ -172,12 +172,18 @@ export type CmsContent = {
   checkout: CheckoutCms;
 };
 
+export type VoucherTargetType = "all" | "specific";
+
 export type Voucher = {
   code: string;
   type: "percent" | "fixed";
   value: number;
   minSpend: number;
   active: boolean;
+  targetType?: VoucherTargetType;
+  targetUserIds?: string[];
+  targetUserEmails?: string[];
+  description?: string;
 };
 
 export type Settings = {

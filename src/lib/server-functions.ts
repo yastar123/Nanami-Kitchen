@@ -765,9 +765,21 @@ export const saveOrderDb = createServerFn({ method: "POST" })
           ${order.accountId || null}
         )
         ON CONFLICT (id) DO UPDATE SET
+          code = EXCLUDED.code,
+          type = EXCLUDED.type,
+          lines = EXCLUDED.lines,
+          subtotal = EXCLUDED.subtotal,
+          discount = EXCLUDED.discount,
+          voucher_code = EXCLUDED.voucher_code,
+          delivery_fee = EXCLUDED.delivery_fee,
+          total = EXCLUDED.total,
           status = EXCLUDED.status,
           paid = EXCLUDED.paid,
-          eta_minutes = EXCLUDED.eta_minutes
+          payment_method = EXCLUDED.payment_method,
+          points_earned = EXCLUDED.points_earned,
+          eta_minutes = EXCLUDED.eta_minutes,
+          customer = EXCLUDED.customer,
+          account_id = EXCLUDED.account_id
       `;
       return { ok: true, source: "database" };
     } catch (e) {

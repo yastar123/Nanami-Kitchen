@@ -46,8 +46,8 @@ const getCwd = () => {
   return ".";
 };
 
-const DATA_DIR = path.resolve(getCwd(), "data");
-const STORAGE_FILE = path.join(DATA_DIR, "nanami-db.json");
+const DATA_DIR = path.resolve(getCwd(), ".server-data");
+const STORAGE_FILE = path.join(DATA_DIR, "storage.json");
 
 let memoryState: StorageData | null = null;
 

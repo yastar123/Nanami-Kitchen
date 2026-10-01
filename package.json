@@ -13,6 +13,7 @@
     "format": "prettier --write .",
     "db:push": "tsx src/scripts/db-setup.ts push",
     "db:seed": "tsx src/scripts/db-setup.ts seed",
+    "seed": "tsx scripts/seed.ts",
     "db:migrate:phase1": "tsx src/scripts/migrate-phase1.ts"
   },
   "overrides": {

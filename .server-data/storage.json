@@ -1,0 +1,896 @@
+{
+  "settings": {
+    "currencySymbol": "N$",
+    "storeName": "Nanami Kitchen & Sushi Bar",
+    "storeTagline": "Japanese comfort food, made fresh daily",
+    "storeAddress": "12 Rosebank Road, Rosebank, Johannesburg",
+    "storeOpen": true,
+    "deliveryOn": true,
+    "pickupOn": true,
+    "codEnabled": true,
+    "vatEnabled": false,
+    "vatPercent": 15,
+    "whatsapp": "27812345678",
+    "baseFee": 25,
+    "feePerKm": 5,
+    "maxRadiusKm": 15,
+    "storeMapsUrl": "https://www.google.com/maps?q=-26.146,28.043",
+    "storeLat": -26.146,
+    "storeLng": 28.043,
+    "minFee": 25,
+    "freeDeliveryAbove": 250,
+    "routeFactor": 1.3,
+    "bankName": "Standard Bank / FNB",
+    "bankAccount": "62812345678",
+    "bankHolder": "Nanami Kitchen Pty Ltd",
+    "ewallet": "0812345678 (Capitec Pay / SnapScan)",
+    "openHours": "10:00 – 21:00 every day",
+    "pointsPer10k": 1,
+    "adminPassword": "nanami123"
+  },
+  "cms": {
+    "logoUrl": "",
+    "brandName": "nanami",
+    "brandSuffix": "kitchen",
+    "tagline": "Good food, made with love.",
+    "description": "Delicious bento boxes, crispy chicken, snacks, and refreshing handcrafted drinks made fresh for families and co-workers.",
+    "heroImage": "",
+    "heroTitleLine1": "Good Food.",
+    "heroTitleLine2": "Made with Love",
+    "heroSlogan": "Good Food. Made with Love",
+    "heroCtaText": "Order Now",
+    "announcement": {
+      "link": "/vouchers",
+      "text": "🎉 Special Promo: Get 20% OFF all menu items with voucher code NANAMI20!",
+      "type": "promo",
+      "enabled": true
+    },
+    "welcomeScreen": {
+      "enabled": true,
+      "durationSec": 3.5,
+      "title": "nanami",
+      "subtitle": "kitchen",
+      "slogan": "Good Food. Made with Love",
+      "imageUrl": ""
+    },
+    "socials": {
+      "tiktok": "@nanami.kitchen",
+      "mapsUrl": "https://maps.google.com/?q=Nanami+Kitchen",
+      "whatsapp": "27812345678",
+      "instagram": "@nanami.kitchen"
+    },
+    "aboutStory": "Nanami Kitchen serves authentic Japanese bento boxes, fiery crispy smashed chicken, and refreshing handcrafted beverages prepared fresh daily using high-quality ingredients.",
+    "faqs": [
+      {
+        "id": "faq-1",
+        "active": true,
+        "answer": "Orders are freshly cooked in 15–20 minutes. Delivery time depends on your distance (approx. 15–30 minutes).",
+        "question": "What is the estimated preparation and delivery time?"
+      },
+      {
+        "id": "faq-2",
+        "active": true,
+        "answer": "Yes, you can choose Pick-up at checkout with zero delivery fee.",
+        "question": "Does Nanami Kitchen offer a Pick-up (Takeaway) option?"
+      },
+      {
+        "id": "faq-3",
+        "active": true,
+        "answer": "Go to Vouchers, tap 'Apply' on your voucher or enter the code during Checkout.",
+        "question": "How do I redeem a discount voucher?"
+      },
+      {
+        "id": "faq-4",
+        "active": true,
+        "answer": "We accept Bank Transfer (EFT), E-Wallets / Capitec Pay, and Cash on Delivery / Pickup.",
+        "question": "Which payment methods are accepted?"
+      }
+    ],
+    "checkout": {
+      "detailsTitle": "Your Details",
+      "fullNameLabel": "Full Name",
+      "defaultFullName": "Nanami Owner",
+      "phoneLabel": "WhatsApp Number",
+      "defaultPhone": "0834567890",
+      "ewalletEnabled": true,
+      "ewalletLabel": "eWallet / Pay2Cell",
+      "ewalletSub": "(Scan QR or Mobile Transfer)",
+      "bankEnabled": true,
+      "bankLabel": "Bank Transfer / Instant EFT",
+      "bankSub": "(ATM/MBANK/IBANK)",
+      "codEnabled": true,
+      "codLabel": "Cash on Delivery",
+      "codSub": "(For Pickup & Delivery)",
+      "instructionsTitle": "Payment Instructions",
+      "step1Text": "1. Transfer to the following account:",
+      "ewalletTitle": "E-Wallet",
+      "ewalletAccountName": "Nanami Kitchen",
+      "ewalletNumber": "0812345678 (Capitec Pay / SnapScan)",
+      "copyButtonText": "Copy",
+      "bankTitle": "EFT",
+      "bankName": "First National Bank (FNB)",
+      "bankAccountName": "Nanami Kitchen CC",
+      "bankAccountNumber": "62123456789",
+      "codInstructions": "Pay in cash when your order arrives or when you pick it up. Please prepare the exact amount if possible.",
+      "step2Text": "2. Upload proof of payment (Screenshot) in the WhatsApp chat after ordering."
+    }
+  },
+  "menu": [
+    {
+      "id": "m1",
+      "name": "Teriyaki Chicken Bento",
+      "description": "Grilled teriyaki chicken with warm rice and Japanese pickles.",
+      "price": 95,
+      "category": "Meals",
+      "image": "/food-1.jpg",
+      "available": true,
+      "prepMinutes": 15,
+      "badges": [
+        "Halal-friendly",
+        "Contains Soy"
+      ],
+      "groups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "choices": [
+            {
+              "id": "reg",
+              "name": "Regular",
+              "price": 0
+            },
+            {
+              "id": "large",
+              "name": "Large",
+              "price": 15
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "id": "topping",
+          "name": "Extra Toppings",
+          "type": "multi",
+          "choices": [
+            {
+              "id": "egg",
+              "name": "Fried Egg",
+              "price": 15
+            },
+            {
+              "id": "cheese",
+              "name": "Mozzarella Cheese",
+              "price": 20
+            },
+            {
+              "id": "sambal",
+              "name": "Extra Chili Sauce",
+              "price": 10
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "specialRequestEnabled": true,
+      "stock": 42
+    },
+    {
+      "id": "m2",
+      "name": "Crispy Smashed Chicken",
+      "description": "Crispy smashed chicken served with fresh chili sauce.",
+      "price": 85,
+      "category": "Meals",
+      "image": "/food-2.jpg",
+      "available": true,
+      "prepMinutes": 18,
+      "badges": [
+        "Halal-friendly",
+        "Spicy"
+      ],
+      "groups": [
+        {
+          "id": "spice",
+          "name": "Spice Level",
+          "type": "single",
+          "enabled": true,
+          "choices": [
+            {
+              "id": "mild",
+              "name": "Mild",
+              "price": 0
+            },
+            {
+              "id": "medium",
+              "name": "Medium",
+              "price": 0
+            },
+            {
+              "id": "hot",
+              "name": "Extra Hot",
+              "price": 5
+            }
+          ]
+        },
+        {
+          "id": "topping",
+          "name": "Extra Toppings",
+          "type": "multi",
+          "enabled": true,
+          "choices": [
+            {
+              "id": "egg",
+              "name": "Fried Egg",
+              "price": 15
+            },
+            {
+              "id": "cheese",
+              "name": "Mozzarella Cheese",
+              "price": 20
+            },
+            {
+              "id": "sambal",
+              "name": "Extra Chili Sauce",
+              "price": 10
+            }
+          ]
+        }
+      ],
+      "specialRequestEnabled": true
+    },
+    {
+      "id": "m3",
+      "name": "Iced Milk Tea",
+      "description": "House brewed tea with fresh milk and brown sugar.",
+      "price": 35,
+      "category": "Drinks",
+      "image": "/food-3.jpg",
+      "available": true,
+      "prepMinutes": 5,
+      "badges": [
+        "Contains Dairy"
+      ],
+      "groups": [
+        {
+          "id": "size",
+          "name": "Size",
+          "type": "single",
+          "enabled": true,
+          "choices": [
+            {
+              "id": "reg",
+              "name": "Regular",
+              "price": 0
+            },
+            {
+              "id": "large",
+              "name": "Large",
+              "price": 15
+            }
+          ]
+        }
+      ],
+      "specialRequestEnabled": true
+    },
+    {
+      "id": "m4",
+      "name": "Crispy Snack Platter",
+      "description": "Golden fried bites served with signature dipping sauce.",
+      "price": 65,
+      "category": "Snacks",
+      "image": "/food-4.jpg",
+      "available": true,
+      "prepMinutes": 12,
+      "badges": [
+        "Contains Gluten"
+      ],
+      "groups": [
+        {
+          "id": "topping",
+          "name": "Extra Toppings",
+          "type": "multi",
+          "enabled": true,
+          "choices": [
+            {
+              "id": "egg",
+              "name": "Fried Egg",
+              "price": 15
+            },
+            {
+              "id": "cheese",
+              "name": "Mozzarella Cheese",
+              "price": 20
+            },
+            {
+              "id": "sambal",
+              "name": "Extra Chili Sauce",
+              "price": 10
+            }
+          ]
+        }
+      ],
+      "specialRequestEnabled": true
+    },
+    {
+      "id": "m5",
+      "name": "Crispy Chicken & Tea Combo",
+      "description": "Smashed chicken, fragrant rice, and iced milk tea.",
+      "price": 110,
+      "category": "Combos",
+      "image": "/food-2.jpg",
+      "available": true,
+      "prepMinutes": 20,
+      "badges": [
+        "Halal-friendly",
+        "Spicy"
+      ],
+      "groups": [
+        {
+          "id": "spice",
+          "name": "Spice Level",
+          "type": "single",
+          "enabled": true,
+          "choices": [
+            {
+              "id": "mild",
+              "name": "Mild",
+              "price": 0
+            },
+            {
+              "id": "medium",
+              "name": "Medium",
+              "price": 0
+            },
+            {
+              "id": "hot",
+              "name": "Extra Hot",
+              "price": 5
+            }
+          ]
+        }
+      ],
+      "specialRequestEnabled": true
+    },
+    {
+      "id": "m6",
+      "name": "Signature Chili Jar (150ml)",
+      "description": "Take our fiery chili sauce home. Fresh and spicy.",
+      "price": 45,
+      "category": "Others",
+      "image": "/food-2.jpg",
+      "available": true,
+      "prepMinutes": 2,
+      "badges": [
+        "Spicy",
+        "Vegan"
+      ],
+      "groups": [],
+      "specialRequestEnabled": true
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-audit-1790390233839",
+      "code": "NK-AUDIT-3041",
+      "createdAt": 1790390233839,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "m1-line-1",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 2,
+          "optionLabels": [
+            "Large (N$ 15)",
+            "Fried Egg (N$ 15)"
+          ],
+          "note": "Extra sauce please"
+        }
+      ],
+      "subtotal": 250,
+      "discount": 0,
+      "voucherCode": "",
+      "deliveryFee": 25,
+      "vatAmount": 37.5,
+      "vatPercent": 15,
+      "total": 312.5,
+      "status": "Cooking",
+      "paid": false,
+      "paymentMethod": "ewallet",
+      "pointsEarned": 2,
+      "etaMinutes": 25,
+      "customer": {
+        "name": "Sarah Jenkins",
+        "phone": "+264811234567",
+        "address": "77 Independence Ave, Windhoek",
+        "lat": -22.5609,
+        "lng": 17.0658,
+        "deliveryNote": ""
+      }
+    },
+    {
+      "id": "ord-test-1790388743436",
+      "code": "NK-4064",
+      "createdAt": 1790388743436,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "cl-test",
+          "itemId": "m1",
+          "name": "Teriyaki Chicken Bento",
+          "unitPrice": 95,
+          "qty": 1,
+          "optionLabels": [],
+          "note": "Extra fork please"
+        }
+      ],
+      "subtotal": 95,
+      "discount": 0,
+      "voucherCode": "",
+      "deliveryFee": 25,
+      "vatPercent": 15,
+      "vatAmount": 14.25,
+      "total": 134.25,
+      "status": "Pending Payment",
+      "paid": false,
+      "paymentMethod": "Bank Transfer",
+      "pointsEarned": 1,
+      "etaMinutes": 20,
+      "customer": {
+        "name": "Automated Test Customer",
+        "phone": "+264811239999",
+        "address": "100 Sam Nujoma Drive, Windhoek",
+        "deliveryNote": ""
+      }
+    },
+    {
+      "id": "test-order-99",
+      "code": "ORD-TEST-99",
+      "createdAt": 1790390575614,
+      "type": "delivery",
+      "lines": [
+        {
+          "id": "l1",
+          "itemId": "m1",
+          "name": "Bento Special",
+          "unitPrice": 45000,
+          "qty": 1,
+          "optionLabels": [],
+          "note": ""
+        }
+      ],
+      "subtotal": 45000,
+      "discount": 0,
+      "voucherCode": "",
+      "deliveryFee": 10000,
+      "total": 55000,
+      "status": "Cooking",
+      "paid": true,
+      "paymentMethod": "QRIS",
+      "pointsEarned": 55,
+      "etaMinutes": 30,
+      "customer": {
+        "name": "Test Customer",
+        "phone": "08123456789",
+        "address": "Jl. Sudirman No. 12",
+        "deliveryNote": ""
+      }
+    }
+  ],
+  "promos": [
+    {
+      "id": "p1",
+      "title": "Free delivery over N$ 250",
+      "subtitle": "Within 5 km radius of our kitchen",
+      "badge": "Delivery",
+      "imageUrl": "/assets/hero.jpg",
+      "active": true
+    },
+    {
+      "id": "p2",
+      "title": "20% OFF all menu",
+      "subtitle": "Today only — use code NANAMI20",
+      "badge": "Special",
+      "imageUrl": "/assets/food-2.jpg",
+      "active": true
+    },
+    {
+      "id": "p3",
+      "title": "Earn points on every order",
+      "subtitle": "1 point for every N$ 100 spent",
+      "badge": "Loyalty",
+      "imageUrl": "/assets/food-3.jpg",
+      "active": true
+    },
+    {
+      "id": "promo-test-99",
+      "title": "Test Promo Title",
+      "subtitle": "Test Subtitle",
+      "badge": "Deal",
+      "active": true
+    }
+  ],
+  "vouchers": [
+    {
+      "code": "NANAMI20",
+      "type": "percent",
+      "value": 20,
+      "minSpend": 0,
+      "active": true
+    },
+    {
+      "code": "SAVE20RAND",
+      "type": "fixed",
+      "value": 20,
+      "minSpend": 100,
+      "active": true
+    },
+    {
+      "code": "TEST50",
+      "type": "percent",
+      "value": 50,
+      "minSpend": 50000,
+      "active": true
+    }
+  ],
+  "accounts": [
+    {
+      "id": "demo-owner",
+      "email": "owner@nanami.id",
+      "password": "owner123",
+      "name": "Nanami Owner",
+      "phone": "0834567890",
+      "role": "owner",
+      "address": "HQ Nanami Kitchen, Rosebank, Johannesburg",
+      "addresses": [
+        "HQ Nanami Kitchen, Rosebank, Johannesburg"
+      ],
+      "points": 1500
+    },
+    {
+      "id": "demo-admin",
+      "email": "admin@nanami.id",
+      "password": "admin123",
+      "name": "Kitchen Admin",
+      "phone": "0823456789",
+      "role": "admin",
+      "address": "Kitchen 1, Nanami Kitchen, Johannesburg",
+      "addresses": [
+        "Kitchen 1, Nanami Kitchen, Johannesburg"
+      ],
+      "points": 120
+    },
+    {
+      "id": "demo-staff",
+      "email": "staff@nanami.id",
+      "password": "staff123",
+      "name": "Kitchen Staff",
+      "phone": "0812-5555-6666",
+      "role": "staff",
+      "address": "Nanami Kitchen Line 1",
+      "addresses": [
+        "Nanami Kitchen Line 1"
+      ],
+      "points": 0
+    },
+    {
+      "id": "demo-user",
+      "email": "user@nanami.id",
+      "password": "user123",
+      "name": "Customer Nanami",
+      "phone": "0812345678",
+      "role": "user",
+      "address": "10 Oxford Road, Rosebank, Johannesburg",
+      "addresses": [
+        "10 Oxford Road, Rosebank, Johannesburg"
+      ],
+      "points": 350
+    },
+    {
+      "id": "legacy-user",
+      "email": "user@nanamikitchen.com",
+      "password": "user123",
+      "name": "David Smith",
+      "phone": "0812345678",
+      "role": "user",
+      "address": "12 Rosebank Road, Rosebank, Johannesburg",
+      "addresses": [
+        "12 Rosebank Road, Rosebank, Johannesburg",
+        "Building 4, Sandton City, Sandton"
+      ],
+      "points": 350
+    },
+    {
+      "id": "legacy-admin",
+      "email": "admin@nanamikitchen.com",
+      "password": "admin123",
+      "name": "Sarah Jenkins",
+      "phone": "0823456789",
+      "role": "admin",
+      "address": "Kitchen 2, Rosebank Mall, Johannesburg",
+      "addresses": [
+        "Kitchen 2, Rosebank Mall, Johannesburg"
+      ],
+      "points": 120
+    },
+    {
+      "id": "legacy-staff",
+      "email": "staff@nanamikitchen.com",
+      "password": "staff123",
+      "name": "David Miller (Kitchen)",
+      "phone": "0812-5555-6666",
+      "role": "staff",
+      "address": "Nanami Kitchen Line 1",
+      "addresses": [
+        "Nanami Kitchen Line 1"
+      ],
+      "points": 0
+    },
+    {
+      "id": "legacy-owner",
+      "email": "owner@nanamikitchen.com",
+      "password": "owner123",
+      "name": "Nanami Miller",
+      "phone": "0834567890",
+      "role": "owner",
+      "address": "HQ Nanami Kitchen, Rosebank, Johannesburg",
+      "addresses": [
+        "HQ Nanami Kitchen, Rosebank, Johannesburg"
+      ],
+      "points": 1500
+    },
+    {
+      "id": "cust-d2ne0pemuev43zu",
+      "name": "Automated Test Customer",
+      "email": "cust_1790213866552@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-5mvshm4muev4kgy",
+      "name": "Automated Test Customer",
+      "email": "cust_1790213887904@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-jk1eq9vmuevdpsh",
+      "name": "Automated Test Customer",
+      "email": "cust_1790214314703@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-n3x4sa4muevdvd1",
+      "name": "Automated Test Customer",
+      "email": "cust_1790214321923@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-g6gngy0muevgeg8",
+      "name": "Automated Test Customer",
+      "email": "cust_1790214439972@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-fimr3y3muevhkz7",
+      "name": "Audit User",
+      "email": "audit_user_1790214495088@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-kxgeijdmuevihq5",
+      "name": "Audit User",
+      "email": "audit_user_1790214537531@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-yz5prl2muevja4i",
+      "name": "Automated Test Customer",
+      "email": "cust_1790214574336@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-jq0arfrmugcqd77",
+      "name": "Automated Test Customer",
+      "email": "cust_1790303924560@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-lm82oaomugcs0lc",
+      "name": "Audit User",
+      "email": "audit_user_1790304001536@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-vtlwtlrmugcsqsi",
+      "name": "Audit User",
+      "email": "audit_user_1790304035489@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-25fxdvcmugcx6rh",
+      "name": "Audit User",
+      "email": "audit_user_1790304242812@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-71xc5avmugli4lu",
+      "name": "Audit User",
+      "email": "audit_user_1790318656721@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-awioza2muglj5fa",
+      "name": "Audit User",
+      "email": "audit_user_1790318704437@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-i0ruyvdmuhr8btm",
+      "name": "Automated Test Customer",
+      "email": "cust_1790388743383@example.com",
+      "phone": "+264811239999",
+      "password": "securePassword123",
+      "role": "user",
+      "address": "100 Sam Nujoma Drive, Windhoek",
+      "addresses": [
+        "100 Sam Nujoma Drive, Windhoek"
+      ],
+      "points": 0
+    },
+    {
+      "id": "cust-ahpnxmtmuhr98wd",
+      "name": "Audit User",
+      "email": "audit_user_1790388786253@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    },
+    {
+      "id": "cust-qonx7aqmuhs49u4",
+      "name": "Audit User",
+      "email": "audit_user_1790390233804@example.com",
+      "phone": "+264811234000",
+      "password": "AuditPassword123!",
+      "role": "user",
+      "address": "",
+      "addresses": [],
+      "points": 0
+    }
+  ],
+  "staff": [
+    {
+      "id": "staff-test-01",
+      "name": "Chef Tanaka",
+      "email": "tanaka@nanami.id",
+      "phone": "0812999888",
+      "role": "staff",
+      "active": true,
+      "createdAt": 1790390575623
+    },
+    {
+      "id": "s1",
+      "name": "Nanami Owner",
+      "email": "owner@nanami.id",
+      "phone": "0812-1111-2222",
+      "role": "owner",
+      "active": true,
+      "createdAt": 1736467200000
+    },
+    {
+      "id": "s2",
+      "name": "Kitchen Admin",
+      "email": "admin@nanami.id",
+      "phone": "0812-3333-4444",
+      "role": "admin",
+      "active": true,
+      "createdAt": 1740873600000
+    },
+    {
+      "id": "s3",
+      "name": "Kitchen Staff",
+      "email": "staff@nanami.id",
+      "phone": "0812-5555-6666",
+      "role": "staff",
+      "active": true,
+      "createdAt": 1750204800000
+    },
+    {
+      "id": "s4",
+      "name": "Nanami Miller",
+      "email": "owner@nanamikitchen.com",
+      "phone": "0812-1111-2222",
+      "role": "owner",
+      "active": true,
+      "createdAt": 1736467200000
+    }
+  ],
+  "mediaAssets": [],
+  "sessions": []
+}

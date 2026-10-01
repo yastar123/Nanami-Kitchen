@@ -23,6 +23,8 @@ import {
   BadgeCheck,
   User,
   KeyRound,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   actions,
@@ -219,6 +221,17 @@ export function StaffPanel() {
       return true;
     });
   }, [allUsers, roleFilter, statusFilter, search]);
+
+  // Pagination state (8 cards per page as requested)
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (safePage - 1) * ITEMS_PER_PAGE;
+    return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredUsers, safePage]);
 
   const stats = useMemo(() => {
     return {
@@ -947,7 +960,7 @@ export function StaffPanel() {
 
             {/* User Cards List */}
             <div className="space-y-2.5 pt-2">
-              {filteredUsers.map((u) => {
+              {paginatedUsers.map((u) => {
                 const roleConfig = ROLES.find((r) => r.value === u.role) || ROLES[1];
                 const isCurrentSelf =
                   Boolean(profile?.email) && u.email.toLowerCase() === profile.email.toLowerCase();
@@ -1126,12 +1139,83 @@ export function StaffPanel() {
                         setSearch("");
                         setRoleFilter("all");
                         setStatusFilter("all");
+                        setCurrentPage(1);
                       }}
                       className="mt-3 inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1 text-xs font-semibold hover:bg-secondary/40 cursor-pointer"
                     >
                       Reset Filters
                     </button>
                   )}
+                </div>
+              )}
+
+              {/* Pagination Bar (8 cards per page) */}
+              {filteredUsers.length > ITEMS_PER_PAGE && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-border mt-3">
+                  <p className="text-[11px] text-muted-foreground">
+                    Showing{" "}
+                    <span className="font-semibold text-foreground">
+                      {(safePage - 1) * ITEMS_PER_PAGE + 1} -{" "}
+                      {Math.min(safePage * ITEMS_PER_PAGE, filteredUsers.length)}
+                    </span>{" "}
+                    of <span className="font-semibold text-foreground">{filteredUsers.length}</span>{" "}
+                    accounts
+                  </p>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      disabled={safePage <= 1}
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className="flex items-center gap-1 rounded-lg border border-border bg-secondary/40 px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    >
+                      <ChevronLeft className="size-3.5" /> Prev
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => {
+                        if (
+                          totalPages > 5 &&
+                          num !== 1 &&
+                          num !== totalPages &&
+                          Math.abs(num - safePage) > 1
+                        ) {
+                          if (num === 2 || num === totalPages - 1) {
+                            return (
+                              <span key={num} className="px-1 text-xs text-muted-foreground">
+                                ...
+                              </span>
+                            );
+                          }
+                          return null;
+                        }
+
+                        return (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setCurrentPage(num)}
+                            className={`size-7 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              safePage === num
+                                ? "bg-primary text-primary-foreground shadow-xs"
+                                : "bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            }`}
+                          >
+                            {num}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      className="flex items-center gap-1 rounded-lg border border-border bg-secondary/40 px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    >
+                      Next <ChevronRight className="size-3.5" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
