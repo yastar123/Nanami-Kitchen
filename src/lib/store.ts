@@ -388,10 +388,7 @@ const defaultState: State = {
       badge: "Loyalty",
     },
   ],
-  vouchers: [
-    { code: "NANAMI20", type: "percent", value: 20, minSpend: 0, active: true },
-    { code: "SAVE20RAND", type: "fixed", value: 20, minSpend: 100, active: true },
-  ],
+  vouchers: [{ code: "NANAMI20", type: "percent", value: 20, minSpend: 0, active: true }],
   voucherCode: "",
   accounts: DEMO_ACCOUNTS,
   staff: [
@@ -612,6 +609,18 @@ export const actions = {
         ? ["admin", "owner", "staff"].includes(data.activeProfile.role)
         : s.adminUnlocked;
 
+      const serverOrders = data.orders ? data.orders.map(normalizeOrder) : [];
+      const mergedOrders = [...s.orders];
+      for (const so of serverOrders) {
+        const idx = mergedOrders.findIndex((x) => x.id === so.id || x.code === so.code);
+        if (idx >= 0) {
+          mergedOrders[idx] = { ...mergedOrders[idx], ...so };
+        } else {
+          mergedOrders.push(so);
+        }
+      }
+      mergedOrders.sort((a, b) => b.createdAt - a.createdAt);
+
       return {
         ...s,
         settings: effectiveSettings,
@@ -627,7 +636,7 @@ export const actions = {
             }
           : s.cms,
         menu: data.menu && data.menu.length ? data.menu.map(normalizeMenuItem) : s.menu,
-        orders: data.orders && data.orders.length ? data.orders.map(normalizeOrder) : s.orders,
+        orders: mergedOrders,
         promos: data.promos && data.promos.length ? data.promos : s.promos,
         vouchers: data.vouchers && data.vouchers.length ? data.vouchers : s.vouchers,
         accounts: data.accounts && data.accounts.length ? data.accounts : s.accounts,

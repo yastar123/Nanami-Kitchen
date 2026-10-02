@@ -112,16 +112,16 @@ function OrdersPage() {
         {/* Header Title */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-foreground">Riwayat Pesanan</h1>
+            <h1 className="text-2xl font-black tracking-tight text-foreground">Order History</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Lacak progres pesanan langsung dan riwayat transaksi Anda
+              Track live order progress and transaction history
             </p>
           </div>
           <Link
             to="/menu"
             className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/20 transition"
           >
-            <Sparkles className="size-3.5" /> Pesan Menu Baru
+            <Sparkles className="size-3.5" /> Order New Items
           </Link>
         </div>
 
@@ -136,7 +136,7 @@ function OrdersPage() {
                 setSearch(e.target.value);
                 setVisibleCount(INITIAL_COUNT);
               }}
-              placeholder="Cari ID pesanan atau nama menu..."
+              placeholder="Search order ID or menu item..."
               className="w-full rounded-xl border border-input bg-secondary/30 pl-9 pr-8 py-2 text-xs outline-none focus:border-primary"
             />
             {search && (
@@ -146,7 +146,7 @@ function OrdersPage() {
                   setSearch("");
                   setVisibleCount(INITIAL_COUNT);
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <X className="size-3.5" />
               </button>
@@ -169,7 +169,7 @@ function OrdersPage() {
                     : "bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
-                Semua ({orders.length})
+                All ({orders.length})
               </button>
               <button
                 type="button"
@@ -183,7 +183,7 @@ function OrdersPage() {
                     : "bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
-                Sedang Diproses ({activeCount})
+                Processing ({activeCount})
               </button>
               <button
                 type="button"
@@ -197,7 +197,7 @@ function OrdersPage() {
                     : "bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
-                Selesai ({completedCount})
+                Completed ({completedCount})
               </button>
               <button
                 type="button"
@@ -211,7 +211,7 @@ function OrdersPage() {
                     : "bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
-                Dibatalkan
+                Cancelled
               </button>
             </div>
 
@@ -225,7 +225,7 @@ function OrdersPage() {
                 }}
                 className="rounded-lg border border-input bg-secondary/40 px-2.5 py-1 text-[11px] font-semibold outline-none cursor-pointer"
               >
-                <option value="all">Semua Tipe</option>
+                <option value="all">All Types</option>
                 <option value="delivery">Delivery</option>
                 <option value="pickup">Pickup</option>
               </select>
@@ -237,11 +237,11 @@ function OrdersPage() {
         {filteredOrders.length === 0 && (
           <div className="py-16 text-center rounded-2xl border border-dashed border-border p-6">
             <Package className="mx-auto size-10 text-muted-foreground/40 mb-2" />
-            <p className="text-sm font-bold text-foreground">Tidak ada pesanan ditemukan</p>
+            <p className="text-sm font-bold text-foreground">No orders found</p>
             <p className="text-xs text-muted-foreground mt-1">
               {search || statusFilter !== "all" || typeFilter !== "all"
-                ? "Coba sesuaikan kata kunci pencarian atau filter status pesanan Anda."
-                : "Anda belum memiliki riwayat pesanan."}
+                ? "Try adjusting your search query or order status filter."
+                : "You don't have any order history yet."}
             </p>
             {(search || statusFilter !== "all" || typeFilter !== "all") && (
               <button
@@ -249,7 +249,7 @@ function OrdersPage() {
                 onClick={handleResetFilters}
                 className="mt-3 inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1 text-xs font-semibold hover:bg-secondary/40 cursor-pointer"
               >
-                Reset Filter
+                Reset Filters
               </button>
             )}
           </div>
@@ -266,9 +266,8 @@ function OrdersPage() {
         {filteredOrders.length > 0 && (
           <div className="pt-2 text-center space-y-2">
             <p className="text-xs text-muted-foreground">
-              Menampilkan <span className="font-bold text-foreground">{visibleOrders.length}</span>{" "}
-              dari <span className="font-bold text-foreground">{filteredOrders.length}</span>{" "}
-              pesanan
+              Showing <span className="font-bold text-foreground">{visibleOrders.length}</span> of{" "}
+              <span className="font-bold text-foreground">{filteredOrders.length}</span> orders
             </p>
 
             {visibleOrders.length < filteredOrders.length ? (
@@ -278,13 +277,11 @@ function OrdersPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary/80 hover:bg-secondary border border-border px-6 py-2.5 text-xs font-bold text-foreground transition-all shadow-xs hover:shadow cursor-pointer active:scale-95"
               >
                 <ArrowDown className="size-3.5 text-primary" />
-                <span>
-                  Muat Lebih Banyak ({filteredOrders.length - visibleOrders.length} tersisa)
-                </span>
+                <span>Load More ({filteredOrders.length - visibleOrders.length} remaining)</span>
               </button>
             ) : (
               <p className="text-[11px] text-muted-foreground/80 italic">
-                Semua pesanan telah ditampilkan
+                All orders are displayed
               </p>
             )}
           </div>
@@ -341,7 +338,7 @@ function OrderCard({ order }: { order: Order }) {
           </div>
           <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
             <Clock className="size-3" />
-            {new Date(order.createdAt).toLocaleString("id-ID", {
+            {new Date(order.createdAt).toLocaleString("en-US", {
               day: "numeric",
               month: "short",
               year: "numeric",
@@ -380,11 +377,11 @@ function OrderCard({ order }: { order: Order }) {
       {/* Flow Steps Indicator */}
       {order.status === "Cancelled" ? (
         <div className="mt-3 flex items-center gap-2 rounded-xl bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs font-semibold text-destructive">
-          <XCircle className="size-4" /> Pesanan telah dibatalkan
+          <XCircle className="size-4" /> Order has been cancelled
         </div>
       ) : order.status === "Completed" ? (
         <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-600">
-          <CheckCircle2 className="size-4" /> Pesanan selesai dan telah diterima
+          <CheckCircle2 className="size-4" /> Order completed and delivered
         </div>
       ) : (
         <div className="mt-3 py-1">
@@ -455,7 +452,7 @@ function OrderCard({ order }: { order: Order }) {
 
         <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs font-bold text-foreground">
           <span className="text-muted-foreground">
-            Total Pembayaran ({order.paymentMethod || "eWallet"}):
+            Total Amount ({order.paymentMethod || "eWallet"}):
           </span>
           <span className="font-mono text-sm text-primary">{rupiah(order.total)}</span>
         </div>

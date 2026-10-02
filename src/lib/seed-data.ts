@@ -340,20 +340,6 @@ export const seedVouchers: Voucher[] = [
     minSpend: 0,
     active: true,
   },
-  {
-    code: "SAVE20RAND",
-    type: "fixed",
-    value: 20,
-    minSpend: 100,
-    active: true,
-  },
-  {
-    code: "TEST50",
-    type: "percent",
-    value: 50,
-    minSpend: 50000,
-    active: true,
-  },
 ];
 
 export const seedAccounts: Account[] = [

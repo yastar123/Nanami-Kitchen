@@ -364,11 +364,30 @@ export const getDatabaseState = createServerFn({ method: "POST" })
       const safeAccounts = isStaffOrAdmin
         ? mergedAccounts.map(({ password: _, ...a }) => a as Account)
         : [];
-      const userOrders = isStaffOrAdmin
-        ? fallback.orders
-        : activeProfile
-          ? fallback.orders.filter((o) => o.accountId === activeProfile.id)
-          : [];
+      const cleanPhoneDigits = (p?: string | null) => (p || "").replace(/\D/g, "");
+
+      const filterUserOrders = (list: Order[]) => {
+        if (isStaffOrAdmin) return list;
+        if (!activeProfile) return list;
+        return list.filter((o) => {
+          if (o.accountId && activeProfile.id && o.accountId === activeProfile.id) return true;
+          if (
+            activeProfile.email &&
+            (o.accountId?.toLowerCase() === activeProfile.email.toLowerCase() ||
+              (o.customer as any)?.email?.toLowerCase() === activeProfile.email.toLowerCase())
+          )
+            return true;
+          if (
+            activeProfile.phone &&
+            cleanPhoneDigits(activeProfile.phone) &&
+            cleanPhoneDigits(o.customer?.phone) === cleanPhoneDigits(activeProfile.phone)
+          )
+            return true;
+          return false;
+        });
+      };
+
+      const userOrders = filterUserOrders(fallback.orders);
 
       return {
         settings: fallback.settings,
@@ -501,11 +520,7 @@ export const getDatabaseState = createServerFn({ method: "POST" })
         accountId: o.account_id || null,
       }));
 
-      const filteredOrders = isStaffOrAdmin
-        ? allOrders
-        : activeProfile
-          ? allOrders.filter((o) => o.accountId === activeProfile.id)
-          : [];
+      const filteredOrders = filterUserOrders(allOrders);
 
       return {
         settings: settings[0]?.data ?? fallback.settings,

@@ -23,8 +23,6 @@ export const Route = createFileRoute("/address")({
   component: AddressPage,
 });
 
-const DEFAULT_ADDRESS = "12 Independence Avenue, Windhoek, Namibia";
-
 function AddressPage() {
   const navigate = useNavigate();
   const { profile, settings, orderType, distanceKm, customerMapsUrl } = useStore((s) => ({
@@ -82,7 +80,7 @@ function AddressPage() {
           ) / 10,
         );
         actions.setCustomerPoint(googleMapsLink, km);
-        if (address === DEFAULT_ADDRESS || !address.trim()) {
+        if (!address.trim()) {
           setAddress(`Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
         }
       },
@@ -101,7 +99,7 @@ function AddressPage() {
   }
 
   const [query, setQuery] = useState("");
-  const [address, setAddress] = useState(profile.address || DEFAULT_ADDRESS);
+  const [address, setAddress] = useState(profile.address || "");
   const radius = distanceKm;
   const setRadius = (km: number) => actions.setDistanceKm(km);
   const [editingAddress, setEditingAddress] = useState(false);

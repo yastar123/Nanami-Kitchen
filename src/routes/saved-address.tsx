@@ -1,17 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Trash2 } from "lucide-react";
 import { actions, useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/saved-address")({
   head: () => ({
     meta: [
-      { title: "Saved Address — Nanami Kitchen" },
+      { title: "Saved Addresses — Nanami Kitchen" },
       {
         name: "description",
         content: "Choose one of your saved delivery addresses or add a new one.",
       },
-      { property: "og:title", content: "Saved Address — Nanami Kitchen" },
+      { property: "og:title", content: "Saved Addresses — Nanami Kitchen" },
       {
         property: "og:description",
         content: "Choose one of your saved delivery addresses or add a new one.",
@@ -21,16 +21,10 @@ export const Route = createFileRoute("/saved-address")({
   component: SavedAddressPage,
 });
 
-const FALLBACK = [
-  { label: "Home", address: "12 Independence Avenue, Windhoek Central, Windhoek" },
-  { label: "Office", address: "45 Sam Nujoma Drive, Klein Windhoek, Windhoek" },
-  { label: "Other", address: "88 Robert Mugabe Avenue, Windhoek" },
-];
-
-function labelFor(address: string, index: number) {
-  if (index === 0) return "Home";
-  if (index === 1) return "Office";
-  return "Other";
+function labelFor(index: number) {
+  if (index === 0) return "Main Address";
+  if (index === 1) return "Secondary Address";
+  return `Saved Address #${index + 1}`;
 }
 
 function SavedAddressPage() {
@@ -43,8 +37,8 @@ function SavedAddressPage() {
   const items = useMemo(
     () =>
       addresses && addresses.length > 0
-        ? addresses.map((a, i) => ({ label: labelFor(a, i), address: a }))
-        : FALLBACK,
+        ? addresses.map((a, i) => ({ label: labelFor(i), address: a }))
+        : [],
     [addresses],
   );
 
@@ -76,54 +70,87 @@ function SavedAddressPage() {
               }
             }}
             aria-label="Back"
-            className="text-foreground"
+            className="text-foreground cursor-pointer"
           >
             <ArrowLeft className="size-6" />
           </button>
-          <h1 className="text-2xl font-semibold">Saved Address</h1>
+          <h1 className="text-2xl font-semibold">Saved Addresses</h1>
         </div>
 
-        {/* Address cards */}
-        <div className="mt-6 space-y-4">
-          {items.map((item, index) => {
-            const active = index === selected;
-            return (
-              <button
-                key={`${item.label}-${item.address}`}
-                onClick={() => choose(index)}
-                className="flex w-full items-start gap-4 rounded-2xl border border-border bg-card p-5 text-left transition-colors"
-              >
-                <MapPin
-                  className={`mt-1 size-6 shrink-0 ${
-                    active ? "fill-primary text-primary" : "text-muted-foreground"
-                  }`}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-lg font-semibold text-foreground">{item.label}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {item.address}
-                  </p>
-                </div>
-                <span
-                  aria-hidden
-                  className={`mt-1 flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                    active ? "border-primary" : "border-muted-foreground"
+        {/* Address List or Empty State */}
+        {items.length === 0 ? (
+          <div className="my-auto py-12 text-center rounded-2xl border border-dashed border-border p-6 space-y-3">
+            <MapPin className="mx-auto size-10 text-muted-foreground/40" />
+            <h3 className="text-base font-bold text-foreground">No Saved Addresses Yet</h3>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+              You haven&apos;t saved any delivery addresses yet. Add a new delivery address for
+              faster checkout.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 space-y-3">
+            {items.map((item, index) => {
+              const active = index === selected;
+              return (
+                <div
+                  key={`${item.address}-${index}`}
+                  className={`flex items-start gap-3 rounded-2xl border bg-card p-4 transition-colors ${
+                    active ? "border-primary ring-1 ring-primary/20 shadow-xs" : "border-border"
                   }`}
                 >
-                  {active && <span className="size-2.5 rounded-full bg-primary" />}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                  <button
+                    type="button"
+                    onClick={() => choose(index)}
+                    className="flex flex-1 items-start gap-3 text-left cursor-pointer min-w-0"
+                  >
+                    <MapPin
+                      className={`mt-0.5 size-5 shrink-0 ${
+                        active ? "fill-primary text-primary" : "text-muted-foreground"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-foreground">{item.label}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground break-words">
+                        {item.address}
+                      </p>
+                    </div>
+                    <span
+                      aria-hidden
+                      className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                        active ? "border-primary" : "border-muted-foreground"
+                      }`}
+                    >
+                      {active && <span className="size-2.5 rounded-full bg-primary" />}
+                    </span>
+                  </button>
+
+                  {/* Remove option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`Remove address "${item.address}"?`)) {
+                        actions.removeAddress(item.address);
+                      }
+                    }}
+                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition cursor-pointer shrink-0 mt-0.5"
+                    title="Remove address"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Add new address */}
         <div className="mt-auto pt-8">
           <button
             onClick={() => navigate({ to: "/address" })}
-            className="w-full rounded-2xl bg-secondary py-4 text-lg font-semibold text-secondary-foreground transition-opacity hover:opacity-90"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 cursor-pointer shadow-sm"
           >
-            Add New Address
+            <Plus className="size-4" />
+            <span>Add New Address</span>
           </button>
         </div>
       </div>
