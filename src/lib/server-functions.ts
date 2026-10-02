@@ -368,7 +368,7 @@ export const getDatabaseState = createServerFn({ method: "POST" })
 
       const filterUserOrders = (list: Order[]) => {
         if (isStaffOrAdmin) return list;
-        if (!activeProfile) return list;
+        if (!activeProfile) return [];
         return list.filter((o) => {
           if (o.accountId && activeProfile.id && o.accountId === activeProfile.id) return true;
           if (

@@ -1710,3 +1710,31 @@ export function discountFor(subtotal: number, voucher?: Voucher) {
     voucher.type === "percent" ? Math.round((subtotal * voucher.value) / 100) : voucher.value;
   return Math.min(value, subtotal);
 }
+
+export function getUserOrders(orders: Order[], profile: Profile): Order[] {
+  if (profile.role === "owner" || profile.role === "admin" || profile.role === "staff") {
+    return orders;
+  }
+  if (!profile.signedIn) {
+    return orders.filter((o) => !o.accountId || o.accountId === "guest");
+  }
+  const userEmail = (profile.email || "").trim().toLowerCase();
+  const userPhone = (profile.phone || "").replace(/\D/g, "");
+  const userName = (profile.name || "").trim().toLowerCase();
+  const userId = profile.id || "";
+
+  return orders.filter((o) => {
+    if (userId && o.accountId === userId) return true;
+    if (
+      userEmail &&
+      (o.accountId?.toLowerCase() === userEmail ||
+        (o.customer as any)?.email?.toLowerCase() === userEmail)
+    )
+      return true;
+    if (userPhone && o.customer?.phone && o.customer.phone.replace(/\D/g, "") === userPhone)
+      return true;
+    if (userName && o.customer?.name && o.customer.name.trim().toLowerCase() === userName)
+      return true;
+    return false;
+  });
+}

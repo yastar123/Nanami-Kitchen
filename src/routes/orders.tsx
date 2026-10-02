@@ -18,6 +18,7 @@ import { AppShell } from "@/components/AppShell";
 import {
   buildWhatsappMessage,
   cleanWhatsappNumber,
+  getUserOrders,
   rupiah,
   useStore,
   type Order,
@@ -45,7 +46,10 @@ export const Route = createFileRoute("/orders")({
 type StatusFilterType = "all" | "active" | "completed" | "cancelled";
 
 function OrdersPage() {
-  const orders = useStore((s) => s.orders);
+  const rawOrders = useStore((s) => s.orders);
+  const profile = useStore((s) => s.profile);
+
+  const orders = useMemo(() => getUserOrders(rawOrders, profile), [rawOrders, profile]);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("all");
