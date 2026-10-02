@@ -102,7 +102,7 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
 
     const matched = findVoucher(vouchers, clean);
     if (!matched) {
-      setVoucherError("Kode voucher tidak valid.");
+      setVoucherError("Invalid voucher code.");
       return;
     }
 
@@ -115,7 +115,7 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
       );
       const matchId = (matched.targetUserIds || []).some((id) => id === userId);
       if (!matchEmail && !matchId) {
-        setVoucherError("Voucher ini eksklusif untuk pengguna tertentu.");
+        setVoucherError("This voucher is exclusive to specific accounts.");
         return;
       }
     }
@@ -228,11 +228,11 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
           {/* Special Request */}
           {item.specialRequestEnabled !== false && (
             <div>
-              <h3 className="text-xs sm:text-sm font-semibold">Catatan Khusus (Opsional)</h3>
+              <h3 className="text-xs sm:text-sm font-semibold">Special Requests (Optional)</h3>
               <input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Contoh: jangan terlalu pedas, kuah dipisah"
+                placeholder="e.g. less spicy, extra sauce on the side"
                 className="mt-1.5 w-full rounded-xl border border-input bg-secondary/40 px-3 py-2 text-xs sm:text-sm outline-none focus:border-primary"
               />
             </div>
@@ -243,8 +243,8 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                 <Ticket className="size-3.5 text-primary" />
-                <span>Voucher Diskon</span>
-                <span className="text-[10px] font-normal text-muted-foreground">(Opsional)</span>
+                <span>Discount Voucher</span>
+                <span className="text-[10px] font-normal text-muted-foreground">(Optional)</span>
               </label>
 
               {eligibleVouchers.length > 0 && (
@@ -253,7 +253,10 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
                   onClick={() => setShowVoucherList((p) => !p)}
                   className="text-[11px] font-semibold text-primary hover:underline inline-flex items-center gap-0.5 cursor-pointer"
                 >
-                  <span>{eligibleVouchers.length} voucher tersedia</span>
+                  <span>
+                    {eligibleVouchers.length} voucher{eligibleVouchers.length === 1 ? "" : "s"}{" "}
+                    available
+                  </span>
                   <ChevronDown
                     className={`size-3 transition-transform ${showVoucherList ? "rotate-180" : ""}`}
                   />
@@ -270,7 +273,7 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
                   setInputVoucher(e.target.value.toUpperCase());
                   setVoucherError("");
                 }}
-                placeholder="Masukkan kode promo (e.g. NANAMI20)"
+                placeholder="Enter promo code (e.g. NANAMI20)"
                 className="flex-1 uppercase rounded-xl border border-input bg-background px-3 py-2 text-xs font-mono font-bold tracking-wider outline-none focus:border-primary"
               />
               {currentVoucherCode ? (
@@ -279,7 +282,7 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
                   onClick={handleRemoveVoucher}
                   className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive hover:bg-destructive/20 transition cursor-pointer"
                 >
-                  Hapus
+                  Remove
                 </button>
               ) : (
                 <button
@@ -288,7 +291,7 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
                   onClick={() => handleApplyVoucher(inputVoucher)}
                   className="rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground disabled:opacity-40 hover:opacity-90 transition cursor-pointer"
                 >
-                  Pakai
+                  Apply
                 </button>
               )}
             </div>
@@ -302,10 +305,11 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
             {currentVoucherCode && activeVoucherObj && !voucherError && (
               <div className="flex items-center justify-between rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 text-xs text-emerald-600 font-semibold">
                 <span className="flex items-center gap-1">
-                  <Check className="size-3.5" /> Voucher <strong>{currentVoucherCode}</strong> aktif
+                  <Check className="size-3.5" /> Voucher <strong>{currentVoucherCode}</strong>{" "}
+                  active
                 </span>
                 {potentialDiscount > 0 && (
-                  <span className="text-[11px] font-bold">Hemat {rupiah(potentialDiscount)}</span>
+                  <span className="text-[11px] font-bold">Save {rupiah(potentialDiscount)}</span>
                 )}
               </div>
             )}
@@ -314,7 +318,7 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
             {showVoucherList && eligibleVouchers.length > 0 && (
               <div className="space-y-1.5 pt-1 border-t border-primary/15 mt-2">
                 <p className="text-[10px] text-muted-foreground font-semibold">
-                  Klik untuk menggunakan voucher:
+                  Click to apply voucher:
                 </p>
                 <div className="grid gap-1.5 max-h-36 overflow-y-auto pr-1">
                   {eligibleVouchers.map((v) => (
@@ -335,11 +339,13 @@ export function ProductSheet({ item, onClose }: { item: MenuItem; onClose: () =>
                         <p className="font-mono text-xs font-bold text-foreground">{v.code}</p>
                         <p className="text-[10px] text-muted-foreground">
                           {v.type === "percent" ? `${v.value}% OFF` : `${rupiah(v.value)} OFF`}
-                          {v.minSpend > 0 ? ` · min ${rupiah(v.minSpend)}` : " · tanpa minimum"}
+                          {v.minSpend > 0
+                            ? ` · min. spend ${rupiah(v.minSpend)}`
+                            : " · no minimum spend"}
                         </p>
                       </div>
                       <span className="text-[11px] font-bold text-primary">
-                        {currentVoucherCode === v.code ? "Terpasang" : "Gunakan"}
+                        {currentVoucherCode === v.code ? "Applied" : "Apply"}
                       </span>
                     </button>
                   ))}

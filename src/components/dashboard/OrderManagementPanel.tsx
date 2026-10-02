@@ -701,9 +701,6 @@ export function OrderManagementPanel({ isOwner = false }: OrderManagementPanelPr
                                 >
                                   {order.paid ? "Paid" : "Unpaid"}
                                 </span>
-                                <span className="text-[10px] text-muted-foreground truncate max-w-[110px]">
-                                  {order.paymentMethod}
-                                </span>
                               </div>
                             </div>
                           </td>
@@ -1160,10 +1157,6 @@ export function OrderManagementPanel({ isOwner = false }: OrderManagementPanelPr
                 <div className="flex justify-between border-t border-border pt-2 text-sm font-bold text-foreground">
                   <span>Total Amount</span>
                   <span className="font-mono text-primary">{rupiah(selectedOrder.total)}</span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
-                  <span>Payment Method</span>
-                  <span className="font-medium text-foreground">{selectedOrder.paymentMethod}</span>
                 </div>
               </div>
             </div>

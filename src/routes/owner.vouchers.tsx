@@ -37,12 +37,12 @@ export const Route = createFileRoute("/owner/vouchers")({
       {
         name: "description",
         content:
-          "Kelola voucher diskon toko dan banner promosi, serta bagikan voucher ke pengguna tertentu atau semua pengguna terdaftar.",
+          "Manage discount vouchers and promotional banners. Share vouchers to all users or specific registered accounts.",
       },
       { property: "og:title", content: "Vouchers & Banners — Nanami Kitchen" },
       {
         property: "og:description",
-        content: "Manajemen voucher diskon dan banner promosi Nanami Kitchen.",
+        content: "Discount vouchers and promo banners management for Nanami Kitchen.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -301,7 +301,7 @@ function VouchersPage() {
     <DashboardShell
       role="owner"
       title="Vouchers & Banners"
-      subtitle="Kelola voucher diskon toko, pembagian ke user tertentu, dan banner promosi"
+      subtitle="Manage discount codes, target user distribution, and promotional banners"
     >
       <div className="space-y-6 pb-24">
         {/* Top 2-Menu Navigation Tabs */}
@@ -316,7 +316,7 @@ function VouchersPage() {
             }`}
           >
             <Ticket className="size-4" />
-            <span>Menu Voucher</span>
+            <span>Vouchers Menu</span>
             <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs">
               {localState.vouchers.length}
             </span>
@@ -332,7 +332,7 @@ function VouchersPage() {
             }`}
           >
             <ImageIcon className="size-4" />
-            <span>Menu Banner</span>
+            <span>Banners Menu</span>
             <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs">
               {localState.promos.length}
             </span>
@@ -344,75 +344,73 @@ function VouchersPage() {
           <div className="grid gap-6 xl:grid-cols-[420px_1fr] xl:items-start">
             {/* Left: Create / Edit Voucher Form */}
             <SectionCard
-              title={editingVoucherCode ? "Edit Voucher Diskon" : "Buat Voucher Baru"}
-              description="Buat kode diskon baru dan tentukan apakah dibagikan ke semua pengguna atau user tertentu."
+              title={editingVoucherCode ? "Edit Discount Voucher" : "Create New Voucher"}
+              description="Create a new promo code and choose whether to distribute to all users or specific registered accounts."
             >
               {editingVoucherCode && (
                 <div className="flex items-center justify-between rounded-xl bg-primary/10 border border-primary/20 px-3 py-2 text-xs text-primary font-semibold">
-                  <span>Sedang mengedit voucher {editingVoucherCode}</span>
+                  <span>Editing voucher: {editingVoucherCode}</span>
                   <button
                     type="button"
                     onClick={resetVoucherForm}
                     className="underline text-[11px] cursor-pointer"
                   >
-                    Batal Edit
+                    Cancel Edit
                   </button>
                 </div>
               )}
 
               <div className="space-y-3.5">
                 <label className="block text-xs font-semibold text-foreground">
-                  Kode Voucher <span className="text-destructive">*</span>
+                  Voucher Code <span className="text-destructive">*</span>
                   <input
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
                     className={`${fieldClass} font-mono font-bold tracking-wider`}
-                    placeholder="e.g. DISKON50 / VIPUSER"
+                    placeholder="e.g. DISCOUNT20 / VIPPROMO"
                   />
                 </label>
 
                 <label className="block text-xs font-semibold text-foreground">
-                  Tipe Diskon <span className="text-destructive">*</span>
+                  Discount Type <span className="text-destructive">*</span>
                   <select
                     value={type}
                     onChange={(e) => setType(e.target.value as "percent" | "fixed")}
                     className={fieldClass}
                   >
-                    <option value="percent">Persentase (%)</option>
-                    <option value="fixed">
-                      Potongan Tetap ({settings.currencySymbol || "N$"})
-                    </option>
+                    <option value="percent">Percentage (%)</option>
+                    <option value="fixed">Fixed Amount ({settings.currencySymbol || "N$"})</option>
                   </select>
                 </label>
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <label className="block text-xs font-semibold text-foreground">
-                    Nilai Diskon <span className="text-destructive">*</span>
+                    Discount Value <span className="text-destructive">*</span>
                     <input
                       value={value}
                       inputMode="numeric"
                       onChange={(e) => setValue(e.target.value)}
                       className={fieldClass}
-                      placeholder={type === "percent" ? "e.g. 20 (20%)" : "e.g. 25000"}
+                      placeholder={type === "percent" ? "e.g. 20 (20%)" : "e.g. 50"}
                     />
                   </label>
 
                   <label className="block text-xs font-semibold text-foreground">
-                    Min. Pembelanjaan
+                    Minimum Spend
                     <input
                       value={minSpend}
                       inputMode="numeric"
                       onChange={(e) => setMinSpend(e.target.value)}
                       className={fieldClass}
-                      placeholder="e.g. 50000"
+                      placeholder="e.g. 100"
                     />
                   </label>
                 </div>
 
-                {/* Target Pembagian Voucher (All vs Specific) */}
+                {/* Target Voucher Distribution (All vs Specific) */}
                 <div className="rounded-2xl border border-primary/25 bg-primary/5 p-3.5 space-y-3">
                   <label className="block text-xs font-bold text-foreground">
-                    Bagikan Voucher Kepada:
+                    Share / Distribute Voucher To:
                   </label>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -426,8 +424,8 @@ function VouchersPage() {
                       }`}
                     >
                       <Globe className="size-4" />
-                      <span className="text-xs">Semua Pengguna</span>
-                      <span className="text-[10px] opacity-80">Terdaftar & Publik</span>
+                      <span className="text-xs">All Users</span>
+                      <span className="text-[10px] opacity-80">Public & Registered</span>
                     </button>
 
                     <button
@@ -440,9 +438,10 @@ function VouchersPage() {
                       }`}
                     >
                       <UserCheck className="size-4" />
-                      <span className="text-xs">Pengguna Tertentu</span>
+                      <span className="text-xs">Specific Users</span>
                       <span className="text-[10px] opacity-80">
-                        {selectedUserEmails.length} user dipilih
+                        {selectedUserEmails.length} user{selectedUserEmails.length === 1 ? "" : "s"}{" "}
+                        selected
                       </span>
                     </button>
                   </div>
@@ -452,7 +451,7 @@ function VouchersPage() {
                     <div className="space-y-2 pt-2 border-t border-primary/20">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[11px] font-bold text-foreground">
-                          Pilih Akun Pengguna ({selectedUserEmails.length} dipilih):
+                          Select User Accounts ({selectedUserEmails.length} selected):
                         </span>
                         <div className="flex items-center gap-1.5 text-[10px]">
                           <button
@@ -460,7 +459,7 @@ function VouchersPage() {
                             onClick={handleSelectAllUsers}
                             className="text-primary hover:underline font-semibold cursor-pointer"
                           >
-                            Pilih Semua
+                            Select All
                           </button>
                           <span>&bull;</span>
                           <button
@@ -468,7 +467,7 @@ function VouchersPage() {
                             onClick={handleDeselectAllUsers}
                             className="text-muted-foreground hover:underline font-semibold cursor-pointer"
                           >
-                            Hapus Pilihan
+                            Deselect All
                           </button>
                         </div>
                       </div>
@@ -480,7 +479,7 @@ function VouchersPage() {
                           type="text"
                           value={userSearch}
                           onChange={(e) => setUserSearch(e.target.value)}
-                          placeholder="Cari nama, email, atau telepon..."
+                          placeholder="Search name, email, or phone..."
                           className="w-full rounded-xl border border-border bg-background py-1.5 pl-8 pr-3 text-xs outline-none focus:border-primary"
                         />
                       </div>
@@ -489,7 +488,7 @@ function VouchersPage() {
                       <div className="max-h-48 overflow-y-auto space-y-1.5 rounded-xl border border-border bg-background p-2">
                         {filteredUsers.length === 0 ? (
                           <p className="text-[11px] text-muted-foreground text-center py-4">
-                            Tidak ada pengguna ditemukan.
+                            No registered users found.
                           </p>
                         ) : (
                           filteredUsers.map((user) => {
@@ -543,9 +542,7 @@ function VouchersPage() {
                     className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40 hover:opacity-90 transition cursor-pointer shadow-sm"
                   >
                     <Check className="size-4" />
-                    <span>
-                      {editingVoucherCode ? "Simpan Perubahan Voucher" : "Tambahkan Voucher"}
-                    </span>
+                    <span>{editingVoucherCode ? "Save Voucher Changes" : "Add Voucher"}</span>
                   </button>
                   {editingVoucherCode && (
                     <button
@@ -553,7 +550,7 @@ function VouchersPage() {
                       onClick={resetVoucherForm}
                       className="rounded-xl border border-border bg-secondary/40 px-3 py-2.5 text-xs font-semibold hover:bg-secondary cursor-pointer"
                     >
-                      Batal
+                      Cancel
                     </button>
                   )}
                 </div>
@@ -562,8 +559,8 @@ function VouchersPage() {
 
             {/* Right: Voucher List Section */}
             <SectionCard
-              title="Daftar Voucher Toko"
-              description={`Total ${localState.vouchers.length} voucher terdaftar dalam sistem.`}
+              title="Store Vouchers List"
+              description={`Total of ${localState.vouchers.length} vouchers configured in the system.`}
             >
               {/* Search vouchers */}
               <div className="relative mb-3">
@@ -571,7 +568,7 @@ function VouchersPage() {
                 <input
                   value={voucherSearch}
                   onChange={(e) => setVoucherSearch(e.target.value)}
-                  placeholder="Cari kode voucher atau email pengguna..."
+                  placeholder="Search voucher code or assigned user email..."
                   className="w-full rounded-xl border border-input bg-secondary/30 pl-9 pr-8 py-2 text-xs outline-none focus:border-primary"
                 />
                 {voucherSearch && (
@@ -588,11 +585,9 @@ function VouchersPage() {
               {filteredVouchersList.length === 0 ? (
                 <div className="py-12 text-center rounded-xl border border-dashed border-border p-6">
                   <Ticket className="mx-auto size-8 text-muted-foreground/40 mb-2" />
-                  <p className="text-sm font-semibold text-foreground">
-                    Tidak ada voucher ditemukan
-                  </p>
+                  <p className="text-sm font-semibold text-foreground">No vouchers found</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Buat voucher diskon baru menggunakan formulir di sebelah kiri.
+                    Create a new discount voucher using the form on the left.
                   </p>
                 </div>
               ) : (
@@ -618,24 +613,25 @@ function VouchersPage() {
                             {/* Target Sharing Badge */}
                             {isSpecific ? (
                               <span className="inline-flex items-center gap-1 rounded-md bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 text-[10px] font-bold text-purple-600">
-                                <UserCheck className="size-3" /> {specificCount} User Khusus
+                                <UserCheck className="size-3" /> {specificCount} Specific User
+                                {specificCount === 1 ? "" : "s"}
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                                <Globe className="size-3" /> Semua Pengguna
+                                <Globe className="size-3" /> All Users
                               </span>
                             )}
                           </div>
 
                           <p className="text-xs text-muted-foreground">
                             {v.minSpend > 0
-                              ? `Minimal belanja: ${rupiah(v.minSpend)}`
-                              : "Tanpa minimal pembelanjaan"}
+                              ? `Min. spend: ${rupiah(v.minSpend)}`
+                              : "No minimum spend"}
                           </p>
 
                           {isSpecific && (v.targetUserEmails || []).length > 0 && (
                             <p className="text-[10px] text-purple-600/90 font-medium truncate max-w-md">
-                              User: {v.targetUserEmails?.join(", ")}
+                              Users: {v.targetUserEmails?.join(", ")}
                             </p>
                           )}
                         </div>
@@ -658,7 +654,7 @@ function VouchersPage() {
                                 : "bg-destructive/15 text-destructive border border-destructive/30"
                             }`}
                           >
-                            {v.active ? "Aktif" : "Non-aktif"}
+                            {v.active ? "Active" : "Inactive"}
                           </button>
 
                           {/* Edit button */}
@@ -675,16 +671,16 @@ function VouchersPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              if (confirm(`Hapus voucher ${v.code}?`)) {
+                              if (confirm(`Delete voucher ${v.code}?`)) {
                                 setLocalState((prev) => ({
                                   ...prev,
                                   vouchers: prev.vouchers.filter((x) => x.code !== v.code),
                                 }));
                               }
                             }}
-                            aria-label={`Hapus ${v.code}`}
+                            aria-label={`Delete ${v.code}`}
                             className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition cursor-pointer"
-                            title="Hapus Voucher"
+                            title="Delete Voucher"
                           >
                             <Trash2 className="size-4" />
                           </button>
@@ -703,60 +699,60 @@ function VouchersPage() {
           <div className="grid gap-6 xl:grid-cols-[400px_1fr] xl:items-start">
             {/* Left: Create / Edit Banner Form */}
             <SectionCard
-              title={editingPromoId ? "Edit Promo Banner" : "Buat Banner Baru"}
-              description="Kelola kartu banner promosi yang tampil di beranda pelanggan."
+              title={editingPromoId ? "Edit Promo Banner" : "Create New Banner"}
+              description="Manage promotional banner cards that appear on the customer home screen."
             >
               {editingPromoId && (
                 <div className="flex items-center justify-between rounded-xl bg-primary/10 border border-primary/20 px-3 py-2 text-xs text-primary font-semibold">
-                  <span>Sedang mengedit banner</span>
+                  <span>Editing banner</span>
                   <button
                     type="button"
                     onClick={resetPromoForm}
                     className="underline text-[11px] cursor-pointer"
                   >
-                    Batal Edit
+                    Cancel Edit
                   </button>
                 </div>
               )}
 
               <div className="space-y-3.5">
                 <label className="block text-xs font-semibold text-foreground">
-                  Judul Banner <span className="text-destructive">*</span>
+                  Banner Title <span className="text-destructive">*</span>
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className={fieldClass}
-                    placeholder="e.g. Diskon 20% Semua Menu"
+                    placeholder="e.g. 20% OFF All Bento Sets"
                   />
                 </label>
 
                 <label className="block text-xs font-semibold text-foreground">
-                  Sub-judul / Keterangan
+                  Subtitle / Description
                   <input
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
                     className={fieldClass}
-                    placeholder="e.g. Khusus hari ini gunakan kode NANAMI20"
+                    placeholder="e.g. Use promo code NANAMI20 at checkout"
                   />
                 </label>
 
                 <label className="block text-xs font-semibold text-foreground">
-                  Badge / Tag Promosi
+                  Badge / Tag Label
                   <input
                     value={badge}
                     onChange={(e) => setBadge(e.target.value)}
                     className={fieldClass}
-                    placeholder="e.g. Promo / Delivery / Spesial"
+                    placeholder="e.g. Promo / Special Deal / Delivery"
                   />
                 </label>
 
                 <label className="block text-xs font-semibold text-foreground">
-                  URL Gambar Banner (Opsional)
+                  Banner Image URL (Optional)
                   <input
                     value={bannerImageUrl}
                     onChange={(e) => setBannerImageUrl(e.target.value)}
                     className={fieldClass}
-                    placeholder="e.g. /assets/hero.jpg atau https://..."
+                    placeholder="e.g. /assets/hero.jpg or https://..."
                   />
                 </label>
 
@@ -767,7 +763,7 @@ function VouchersPage() {
                     className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40 hover:opacity-90 transition cursor-pointer shadow-sm"
                   >
                     <Check className="size-4" />
-                    <span>{editingPromoId ? "Simpan Banner" : "Tambahkan Banner"}</span>
+                    <span>{editingPromoId ? "Save Banner" : "Add Banner"}</span>
                   </button>
                   {editingPromoId && (
                     <button
@@ -775,7 +771,7 @@ function VouchersPage() {
                       onClick={resetPromoForm}
                       className="rounded-xl border border-border bg-secondary/40 px-3 py-2.5 text-xs font-semibold hover:bg-secondary cursor-pointer"
                     >
-                      Batal
+                      Cancel
                     </button>
                   )}
                 </div>
@@ -784,8 +780,8 @@ function VouchersPage() {
 
             {/* Right: Banner List Section */}
             <SectionCard
-              title="Daftar Banner Promosi"
-              description={`Total ${localState.promos.length} banner aktif ditampilkan di carousel aplikasi.`}
+              title="Active Promo Banners"
+              description={`Total of ${localState.promos.length} active banners displayed on the customer app carousel.`}
             >
               {/* Search banner */}
               <div className="relative mb-3">
@@ -793,7 +789,7 @@ function VouchersPage() {
                 <input
                   value={bannerSearch}
                   onChange={(e) => setBannerSearch(e.target.value)}
-                  placeholder="Cari judul banner atau badge..."
+                  placeholder="Search banner title or badge..."
                   className="w-full rounded-xl border border-input bg-secondary/30 pl-9 pr-8 py-2 text-xs outline-none focus:border-primary"
                 />
                 {bannerSearch && (
@@ -810,11 +806,9 @@ function VouchersPage() {
               {filteredPromosList.length === 0 ? (
                 <div className="py-12 text-center rounded-xl border border-dashed border-border p-6">
                   <ImageIcon className="mx-auto size-8 text-muted-foreground/40 mb-2" />
-                  <p className="text-sm font-semibold text-foreground">
-                    Tidak ada banner ditemukan
-                  </p>
+                  <p className="text-sm font-semibold text-foreground">No promo banners found</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Tambahkan banner promosi baru untuk beranda aplikasi.
+                    Add a new promotional banner to show on the customer home screen.
                   </p>
                 </div>
               ) : (
@@ -867,16 +861,16 @@ function VouchersPage() {
                         <button
                           type="button"
                           onClick={() => {
-                            if (confirm(`Hapus banner "${p.title}"?`)) {
+                            if (confirm(`Delete banner "${p.title}"?`)) {
                               setLocalState((prev) => ({
                                 ...prev,
                                 promos: prev.promos.filter((x) => x.id !== p.id),
                               }));
                             }
                           }}
-                          aria-label={`Hapus ${p.title}`}
+                          aria-label={`Delete ${p.title}`}
                           className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition cursor-pointer"
-                          title="Hapus Banner"
+                          title="Delete Banner"
                         >
                           <Trash2 className="size-4" />
                         </button>

@@ -32,16 +32,16 @@ import { cleanWhatsappNumber, rupiah, useStore, type Order } from "@/lib/store";
 export const Route = createFileRoute("/owner/finance")({
   head: () => ({
     meta: [
-      { title: "Financial Reports & Revenue — Owner Panel Nanami Kitchen" },
+      { title: "Financial & Revenue Reports — Owner Panel Nanami Kitchen" },
       {
         name: "description",
         content:
-          "Laporan keuangan resmi dan grafik pendapatan dari pesanan yang telah selesai (Completed) di Nanami Kitchen.",
+          "Official financial reports and revenue charts from all completed orders at Nanami Kitchen.",
       },
-      { property: "og:title", content: "Financial Reports & Revenue — Nanami Kitchen" },
+      { property: "og:title", content: "Financial & Revenue Reports — Nanami Kitchen" },
       {
         property: "og:description",
-        content: "Laporan keuangan dan analisa omzet pesanan selesai Nanami Kitchen.",
+        content: "Financial revenue analysis and completed orders breakdown for Nanami Kitchen.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -55,7 +55,7 @@ type DateFilterOption = "all" | "today" | "yesterday" | "7days" | "30days" | "th
 function FinancePage() {
   const orders = useStore((s) => s.orders);
 
-  // CRITICAL: Hanya pesanan dengan status "Completed" yang masuk ke perhitungan Finance
+  // CRITICAL: Only orders with status === "Completed" enter financial calculations
   const completedOrders = useMemo(() => {
     return orders.filter((o) => o.status === "Completed");
   }, [orders]);
@@ -160,7 +160,7 @@ function FinancePage() {
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date(todayStart - i * 86400000);
       const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const label = d.toLocaleDateString("id-ID", {
+      const label = d.toLocaleDateString("en-US", {
         weekday: "short",
         day: "numeric",
         month: "short",
@@ -177,7 +177,7 @@ function FinancePage() {
         existing.revenue += order.total;
         existing.orders += 1;
       } else if (dateRange === "all") {
-        const label = od.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+        const label = od.toLocaleDateString("en-US", { day: "numeric", month: "short" });
         daysMap.set(dateKey, { label, dateKey, revenue: order.total, orders: 1 });
       }
     }
@@ -197,37 +197,37 @@ function FinancePage() {
     <DashboardShell
       role="owner"
       title="Financial & Revenue Reports"
-      subtitle="Analisa omzet resmi dan rekapitulasi data dari seluruh pesanan yang telah selesai (Completed)"
+      subtitle="Official revenue analysis and transaction breakdown from completed orders"
     >
       <div className="space-y-6">
         {/* KPI Metrics Cards Banner */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            label="Total Pendapatan (Completed)"
+            label="Total Completed Revenue"
             value={rupiah(metrics.totalRevenue)}
-            hint={`${metrics.totalCount} pesanan selesai`}
+            hint={`${metrics.totalCount} completed orders`}
           />
           <StatCard
-            label="Rata-rata Nilai Pesanan (AOV)"
+            label="Average Order Value (AOV)"
             value={rupiah(metrics.avgOrderValue)}
-            hint="Per transaksi selesai"
+            hint="Per completed transaction"
           />
           <StatCard
-            label="Omzet Delivery"
+            label="Delivery Revenue"
             value={rupiah(metrics.deliveryRevenue)}
-            hint={`${metrics.deliveryCount} pesanan delivery`}
+            hint={`${metrics.deliveryCount} delivery orders`}
           />
           <StatCard
-            label="Omzet Pickup / Takeaway"
+            label="Pickup / Takeaway Revenue"
             value={rupiah(metrics.pickupRevenue)}
-            hint={`${metrics.pickupCount} pesanan pickup`}
+            hint={`${metrics.pickupCount} pickup orders`}
           />
         </div>
 
         {/* Interactive Chart Section with Dedicated Filters */}
         <SectionCard
-          title="Grafik Pendapatan & Tren Pesanan Selesai"
-          description="Visualisasi performa penjualan dari transaksi berstatus Completed sesuai rentang waktu yang dipilih."
+          title="Revenue & Completed Orders Trend"
+          description="Visual sales performance and order volume from completed transactions over the selected time range."
         >
           {/* Controls / Filter Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-border/60">
@@ -236,26 +236,26 @@ function FinancePage() {
               <button
                 type="button"
                 onClick={() => setChartMetric("revenue")}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
                   chartMetric === "revenue"
                     ? "bg-primary text-primary-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <TrendingUp className="size-3.5" />
-                <span>Nominal Pendapatan (Rp)</span>
+                <span>Revenue Amount</span>
               </button>
               <button
                 type="button"
                 onClick={() => setChartMetric("orders")}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
                   chartMetric === "orders"
                     ? "bg-primary text-primary-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <BarChart3 className="size-3.5" />
-                <span>Volume Pesanan</span>
+                <span>Order Volume</span>
               </button>
             </div>
 
@@ -269,12 +269,12 @@ function FinancePage() {
                 }}
                 className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer"
               >
-                <option value="today">Hari Ini</option>
-                <option value="yesterday">Kemarin</option>
-                <option value="7days">7 Hari Terakhir</option>
-                <option value="30days">30 Hari Terakhir</option>
-                <option value="thisMonth">Bulan Ini</option>
-                <option value="all">Semua Waktu</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="30days">Last 30 Days</option>
+                <option value="thisMonth">This Month</option>
+                <option value="all">All Time</option>
               </select>
 
               <select
@@ -285,9 +285,9 @@ function FinancePage() {
                 }}
                 className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:border-primary cursor-pointer"
               >
-                <option value="all">Semua Tipe (Delivery & Pickup)</option>
-                <option value="delivery">Hanya Delivery</option>
-                <option value="pickup">Hanya Pickup</option>
+                <option value="all">All Types (Delivery & Pickup)</option>
+                <option value="delivery">Delivery Only</option>
+                <option value="pickup">Pickup Only</option>
               </select>
             </div>
           </div>
@@ -314,7 +314,7 @@ function FinancePage() {
                   axisLine={false}
                   tick={{ fontSize: 11, fill: "var(--muted-foreground, #888)" }}
                   tickFormatter={(val) =>
-                    chartMetric === "revenue" ? rupiah(val) : `${val} order`
+                    chartMetric === "revenue" ? rupiah(val) : `${val} orders`
                   }
                 />
                 <Tooltip
@@ -328,7 +328,7 @@ function FinancePage() {
                             {rupiah(data.revenue)}
                           </p>
                           <p className="text-muted-foreground text-[11px]">
-                            {data.orders} pesanan selesai
+                            {data.orders} completed order{data.orders === 1 ? "" : "s"}
                           </p>
                         </div>
                       );
@@ -351,8 +351,8 @@ function FinancePage() {
 
         {/* Completed Transactions Table Section */}
         <SectionCard
-          title="Daftar Transaksi Pesanan Selesai"
-          description={`Total ${filteredCompletedOrders.length} transaksi pesanan dengan status 'Completed' tercatat dalam sistem.`}
+          title="Completed Transactions History"
+          description={`Total of ${filteredCompletedOrders.length} completed transactions recorded in the system.`}
         >
           {/* Search bar */}
           <div className="relative mb-4 max-w-md">
@@ -364,7 +364,7 @@ function FinancePage() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Cari ID pesanan, nama pelanggan, telepon, metode bayar..."
+              placeholder="Search order ID, customer name, phone, payment method..."
               className="w-full rounded-2xl border border-border bg-secondary/30 py-2 pl-9 pr-8 text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
             />
             {searchQuery && (
@@ -373,7 +373,7 @@ function FinancePage() {
                   setSearchQuery("");
                   setCurrentPage(1);
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <X className="size-3.5" />
               </button>
@@ -383,13 +383,11 @@ function FinancePage() {
           {filteredCompletedOrders.length === 0 ? (
             <div className="py-12 text-center rounded-2xl border border-dashed border-border p-6">
               <CheckCircle2 className="mx-auto size-10 text-muted-foreground/40 mb-2" />
-              <p className="text-sm font-semibold text-foreground">
-                Belum ada data pesanan selesai (Completed)
-              </p>
+              <p className="text-sm font-semibold text-foreground">No completed orders found</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {searchQuery || dateRange !== "7days" || typeFilter !== "all"
-                  ? "Coba ubah kata kunci pencarian atau filter rentang waktu."
-                  : "Pesanan yang telah diubah statusnya menjadi 'Completed' di halaman /owner/orders akan otomatis tampil di sini."}
+                  ? "Try adjusting your search query or date range filters."
+                  : "Orders marked as 'Completed' on the /owner/orders page will automatically show up here."}
               </p>
             </div>
           ) : (
@@ -399,11 +397,11 @@ function FinancePage() {
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-border bg-secondary/20 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                      <th className="px-4 py-3">Order & Waktu</th>
-                      <th className="px-4 py-3">Pelanggan</th>
-                      <th className="px-4 py-3">Item Pesanan</th>
-                      <th className="px-4 py-3">Total Transaksi</th>
-                      <th className="px-4 py-3">Metode Bayar</th>
+                      <th className="px-4 py-3">Order & Time</th>
+                      <th className="px-4 py-3">Customer</th>
+                      <th className="px-4 py-3">Items Ordered</th>
+                      <th className="px-4 py-3">Total Amount</th>
+                      <th className="px-4 py-3">Payment Method</th>
                       <th className="px-4 py-3 text-right">Status</th>
                     </tr>
                   </thead>
@@ -438,7 +436,7 @@ function FinancePage() {
                               <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                                 <Clock className="size-3" />
                                 <span>
-                                  {new Date(order.createdAt).toLocaleDateString("id-ID", {
+                                  {new Date(order.createdAt).toLocaleDateString("en-US", {
                                     day: "numeric",
                                     month: "short",
                                     hour: "2-digit",
@@ -470,7 +468,7 @@ function FinancePage() {
                                 {order.lines.map((l) => `${l.qty}x ${l.name}`).join(", ")}
                               </p>
                               <span className="text-[10px] text-muted-foreground">
-                                {totalQty} item
+                                {totalQty} item{totalQty === 1 ? "" : "s"}
                               </span>
                             </div>
                           </td>
@@ -481,7 +479,7 @@ function FinancePage() {
                               {rupiah(order.total)}
                             </p>
                             <span className="text-[10px] font-bold text-emerald-600">
-                              Lunas / Paid
+                              Paid / Settled
                             </span>
                           </td>
 
@@ -548,16 +546,16 @@ function FinancePage() {
               {filteredCompletedOrders.length > ITEMS_PER_PAGE && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-border mt-3">
                   <p className="text-[11px] text-muted-foreground">
-                    Menampilkan{" "}
+                    Showing{" "}
                     <span className="font-semibold text-foreground">
                       {(safePage - 1) * ITEMS_PER_PAGE + 1} -{" "}
                       {Math.min(safePage * ITEMS_PER_PAGE, filteredCompletedOrders.length)}
                     </span>{" "}
-                    dari{" "}
+                    of{" "}
                     <span className="font-semibold text-foreground">
                       {filteredCompletedOrders.length}
                     </span>{" "}
-                    transaksi selesai
+                    completed transactions
                   </p>
 
                   <div className="flex items-center gap-1.5">
