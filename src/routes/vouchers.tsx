@@ -53,7 +53,7 @@ function Vouchers() {
   function apply(value: string) {
     const voucher = findVoucher(vouchers, value);
     if (!voucher) {
-      setError("Kode voucher tersebut tidak valid.");
+      setError("Invalid voucher code.");
       return;
     }
 
@@ -64,13 +64,13 @@ function Vouchers() {
       );
       const matchId = (voucher.targetUserIds || []).some((id) => id === userId);
       if (!matchEmail && !matchId) {
-        setError("Voucher ini eksklusif untuk pengguna tertentu.");
+        setError("This voucher is exclusive to specific users.");
         return;
       }
     }
 
     if (subtotal > 0 && subtotal < voucher.minSpend) {
-      setError(`Minimal pembelanjaan untuk voucher ini adalah ${rupiah(voucher.minSpend)}.`);
+      setError(`Minimum spend for this voucher is ${rupiah(voucher.minSpend)}.`);
       return;
     }
 
@@ -93,8 +93,8 @@ function Vouchers() {
         <div>
           <p className="text-sm font-semibold">{profile.points} loyalty points</p>
           <p className="text-xs text-muted-foreground">
-            Dapatkan {settings.pointsPer10k} poin setiap pembelanjaan{" "}
-            {settings.currencySymbol || "N$"} 100.
+            Earn {settings.pointsPer10k} point(s) for every {settings.currencySymbol || "N$"} 100
+            spent.
           </p>
         </div>
       </div>
@@ -103,14 +103,14 @@ function Vouchers() {
         <input
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="Masukkan kode voucher"
+          placeholder="Enter promo code"
           className="min-w-0 flex-1 rounded-xl border border-input bg-secondary/40 px-3 py-2.5 text-sm uppercase outline-none focus:border-primary font-mono font-bold"
         />
         <button
           onClick={() => apply(code)}
           className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground cursor-pointer hover:opacity-90"
         >
-          Pakai
+          Apply
         </button>
       </div>
       {error && (
@@ -120,17 +120,17 @@ function Vouchers() {
       )}
       {voucherCode && !error && (
         <p className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-500/15 text-emerald-600 px-3 py-2 text-xs font-semibold">
-          <Check className="size-3.5" /> Voucher {voucherCode} aktif terpasang
+          <Check className="size-3.5" /> Voucher {voucherCode} applied
           {subtotal > 0 &&
-            ` — hemat ${rupiah(discountFor(subtotal, findVoucher(vouchers, voucherCode)))}`}
+            ` — save ${rupiah(discountFor(subtotal, findVoucher(vouchers, voucherCode)))}`}
         </p>
       )}
 
-      <h2 className="mt-7 text-lg font-semibold">Voucher Tersedia</h2>
+      <h2 className="mt-7 text-lg font-semibold">Available Vouchers</h2>
       <div className="mt-3 space-y-3">
         {eligibleVouchers.length === 0 && (
           <p className="text-sm text-muted-foreground py-6 text-center">
-            Belum ada voucher yang tersedia saat ini.
+            No vouchers available at the moment.
           </p>
         )}
         {eligibleVouchers.map((v) => {
@@ -148,13 +148,13 @@ function Vouchers() {
                   </p>
                   {isTargeted && (
                     <span className="inline-flex items-center gap-1 rounded bg-purple-500/15 text-purple-600 text-[10px] font-bold px-1.5 py-0.5">
-                      <UserCheck className="size-3" /> Khusus Anda
+                      <UserCheck className="size-3" /> Exclusive to You
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 font-mono">
-                  Kode: <span className="font-bold text-foreground">{v.code}</span>
-                  {v.minSpend > 0 ? ` · min. belanja ${rupiah(v.minSpend)}` : " · tanpa minimum"}
+                  Code: <span className="font-bold text-foreground">{v.code}</span>
+                  {v.minSpend > 0 ? ` · min. spend ${rupiah(v.minSpend)}` : " · no minimum"}
                 </p>
               </div>
               <button
@@ -165,7 +165,7 @@ function Vouchers() {
                     : "bg-primary text-primary-foreground hover:opacity-90"
                 }`}
               >
-                {voucherCode === v.code ? "Terpasang" : "Gunakan"}
+                {voucherCode === v.code ? "Applied" : "Use"}
               </button>
             </div>
           );
@@ -176,7 +176,7 @@ function Vouchers() {
         to="/cart"
         className="mt-7 block rounded-full bg-primary py-3.5 text-center text-sm font-bold text-primary-foreground hover:opacity-90 transition"
       >
-        Kembali ke Keranjang
+        Back to Cart
       </Link>
     </AppShell>
   );

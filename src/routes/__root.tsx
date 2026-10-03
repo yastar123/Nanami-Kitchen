@@ -282,6 +282,33 @@ function RootComponent() {
     if (token || !serverState) {
       actions.loadServerState();
     }
+
+    // Set up BroadcastChannel for instant real-time cross-tab state synchronization
+    let channel: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== "undefined") {
+      try {
+        channel = new BroadcastChannel("nanami_live_sync");
+        channel.onmessage = (event) => {
+          if (event.data?.type === "SYNC_STATE" || event.data?.type === "ORDER_UPDATED") {
+            actions.loadServerState().catch(() => {});
+          }
+        };
+      } catch (e) {
+        console.warn("BroadcastChannel error:", e);
+      }
+    }
+
+    // Periodic global background poll every 5 seconds
+    const interval = setInterval(() => {
+      actions.loadServerState().catch(() => {});
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+      if (channel) {
+        channel.close();
+      }
+    };
   }, [serverState]);
 
   useEffect(() => {

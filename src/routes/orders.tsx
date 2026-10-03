@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
+  actions,
   buildWhatsappMessage,
   cleanWhatsappNumber,
   getUserOrders,
@@ -50,6 +51,33 @@ function OrdersPage() {
   const profile = useStore((s) => s.profile);
 
   const orders = useMemo(() => getUserOrders(rawOrders, profile), [rawOrders, profile]);
+
+  // Live auto-refresh order status from server in real-time
+  useEffect(() => {
+    // Initial fetch on mount
+    actions.loadServerState().catch(console.error);
+
+    // Poll server every 3 seconds for live order status updates
+    const interval = setInterval(() => {
+      actions.loadServerState().catch(() => {});
+    }, 3000);
+
+    // Re-fetch immediately when tab regains focus or becomes visible
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        actions.loadServerState().catch(() => {});
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, []);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("all");

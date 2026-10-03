@@ -549,6 +549,18 @@ export function normalizeOrder(o: any): Order {
 let state: State = defaultState;
 const listeners = new Set<() => void>();
 
+function broadcastSync(type = "ORDER_UPDATED") {
+  if (typeof BroadcastChannel !== "undefined") {
+    try {
+      const channel = new BroadcastChannel("nanami_live_sync");
+      channel.postMessage({ type, timestamp: Date.now() });
+      channel.close();
+    } catch (e) {
+      // Ignore broadcast errors
+    }
+  }
+}
+
 function set(updater: (s: State) => State) {
   state = updater(state);
   listeners.forEach((l) => l());
@@ -1089,6 +1101,7 @@ export const actions = {
         profile: isMember ? { ...s.profile, points: updatedPoints } : s.profile,
       };
     });
+    broadcastSync("ORDER_UPDATED");
     return full;
   },
   async submitOrder(
@@ -1173,6 +1186,7 @@ export const actions = {
       };
     });
 
+    broadcastSync("ORDER_UPDATED");
     return { ok: true, order: full };
   },
   setOrderStatus(id: string, status: OrderStatus) {
@@ -1186,6 +1200,7 @@ export const actions = {
       }
       return { ...s, orders: updatedOrders };
     });
+    broadcastSync("ORDER_UPDATED");
   },
   markPaid(id: string) {
     set((s) => {
@@ -1198,6 +1213,7 @@ export const actions = {
       }
       return { ...s, orders: updatedOrders };
     });
+    broadcastSync("ORDER_UPDATED");
   },
   updateOrder(order: Order) {
     set((s) => {
@@ -1205,6 +1221,7 @@ export const actions = {
       saveOrderDb({ data: order }).catch(console.error);
       return { ...s, orders: updatedOrders };
     });
+    broadcastSync("ORDER_UPDATED");
   },
   createManualOrder(order: Order) {
     set((s) => {
@@ -1212,10 +1229,12 @@ export const actions = {
       saveOrderDb({ data: order }).catch(console.error);
       return { ...s, orders: updatedOrders };
     });
+    broadcastSync("ORDER_UPDATED");
   },
   deleteOrder(id: string) {
     set((s) => ({ ...s, orders: s.orders.filter((o) => o.id !== id) }));
     deleteOrderDb({ data: id }).catch(console.error);
+    broadcastSync("ORDER_UPDATED");
   },
   async saveMenuItem(item: MenuItem) {
     const cleanItem: MenuItem = {
