@@ -1,15 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import {
-  ChefHat,
-  Crown,
-  Loader2,
-  LogIn,
-  ShieldAlert,
-  ShoppingBag,
-  Store,
-  UtensilsCrossed,
-} from "lucide-react";
+import { LogIn, ShieldAlert, Store } from "lucide-react";
 import logo from "@/assets/nanami-logo.png";
 import { actions, useStore } from "@/lib/store";
 import { getSessionToken } from "@/lib/session";
@@ -217,50 +208,6 @@ function UnauthenticatedGate({ pathname, title }: { pathname: string; title?: st
           <Link to="/register" className="text-xs text-muted-foreground hover:text-foreground pt-1">
             Don&apos;t have an account? Register
           </Link>
-        </div>
-
-        <div className="mt-6 border-t border-border pt-4">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-            Or Quick Switch Demo Account:
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <button
-              onClick={() => {
-                actions.loginAsDemo("user");
-              }}
-              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-secondary/30 p-2.5 text-center transition hover:bg-secondary/60 cursor-pointer"
-            >
-              <ShoppingBag className="size-4 text-primary" />
-              <span className="text-[11px] font-bold">User</span>
-            </button>
-            <button
-              onClick={() => {
-                actions.loginAsDemo("staff");
-              }}
-              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-secondary/30 p-2.5 text-center transition hover:bg-secondary/60 cursor-pointer"
-            >
-              <UtensilsCrossed className="size-4 text-blue-500" />
-              <span className="text-[11px] font-bold">Staff</span>
-            </button>
-            <button
-              onClick={() => {
-                actions.loginAsDemo("admin");
-              }}
-              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-secondary/30 p-2.5 text-center transition hover:bg-secondary/60 cursor-pointer"
-            >
-              <ChefHat className="size-4 text-amber-500" />
-              <span className="text-[11px] font-bold">Admin</span>
-            </button>
-            <button
-              onClick={() => {
-                actions.loginAsDemo("owner");
-              }}
-              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-secondary/30 p-2.5 text-center transition hover:bg-secondary/60 cursor-pointer"
-            >
-              <Crown className="size-4 text-purple-500" />
-              <span className="text-[11px] font-bold">Owner</span>
-            </button>
-          </div>
         </div>
       </div>
     </div>
